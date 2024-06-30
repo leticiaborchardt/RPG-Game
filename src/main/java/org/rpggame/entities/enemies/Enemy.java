@@ -11,8 +11,8 @@ public class Enemy extends Character {
     private EnemyType type;
     private int rewardXP;
 
-    public Enemy(String name, int lifePoints, int attack, int defense, int experience, int level, EnemyType type, int rewardXP) {
-        super(name, lifePoints, attack, defense, experience, level, false);
+    public Enemy(String name, int maxHealth, int maxAttack, int maxDefense, int experience, int level, EnemyType type, int rewardXP) {
+        super(name, maxHealth, maxAttack, maxDefense, experience, level);
         this.type = type;
         this.rewardXP = rewardXP;
     }

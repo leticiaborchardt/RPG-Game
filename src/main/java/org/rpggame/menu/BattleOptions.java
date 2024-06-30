@@ -15,6 +15,8 @@ public class BattleOptions {
         while (runBattle) {
             switch (InputValidator.getInteger(showBattleOptions())) {
                 case 1:
+                    character.regenerate();
+
                     Enemy enemy;
                     if (character.isReadyToFightBoss()) {
                         enemy = EnemyGenerator.generateBoss(character);
@@ -36,6 +38,6 @@ public class BattleOptions {
 
     private static String showBattleOptions() {
         return "[1] Iniciar nova batalha\n" +
-                "[2] Sair";
+                "[2] Voltar";
     }
 }

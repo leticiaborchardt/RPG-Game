@@ -1,7 +1,10 @@
 package org.rpggame.game;
 
 import lombok.*;
+import org.rpggame.entities.characters.Archer;
 import org.rpggame.entities.characters.Character;
+import org.rpggame.entities.characters.Mage;
+import org.rpggame.entities.characters.Warrior;
 import org.rpggame.entities.enemies.Boss;
 import org.rpggame.entities.enemies.Enemy;
 import org.rpggame.utils.InputValidator;
@@ -14,9 +17,7 @@ import java.util.Random;
 @NoArgsConstructor
 public final class Battle {
     private Character character;
-    private Enemy enemy;
-    private Character attacker;
-    private Character target;
+    private Character enemy;
     private boolean isBattleOver;
 
     public Battle(Character character, Enemy enemy) {
@@ -26,17 +27,16 @@ public final class Battle {
     }
 
     public void start() {
-        listPlayers();
-        getTurnOrder();
+        listCharacters();
 
         while (!this.isBattleOver()) {
-            newTurn(attacker, target);
+            newTurn(character, enemy);
 
             if (this.checkIfBattleIsOver()) {
                 break;
             }
 
-            newTurn(target, attacker);
+            newTurn(enemy, character);
 
             if (this.checkIfBattleIsOver()) {
                 break;
@@ -44,22 +44,10 @@ public final class Battle {
         }
     }
 
-    private void listPlayers() {
+    private void listCharacters() {
         System.out.println("Batalha iniciada entre " + character.getName() + " e " + enemy.getName());
         System.out.println(character.getName() + ": " + character.getLifePoints() + " HP");
         System.out.println(enemy.getName() + ": " + enemy.getLifePoints() + " HP");
-    }
-
-    private void getTurnOrder() {
-        if (character.getLifePoints() < enemy.getLifePoints()) {
-            attacker = character;
-            target = enemy;
-        } else {
-            attacker = enemy;
-            target = character;
-        }
-
-        System.out.println("Ordem dos turnos determinada.");
     }
 
     private void newTurn(Character attacker, Character target) {
@@ -72,18 +60,20 @@ public final class Battle {
             Random random = new Random();
             action = random.nextInt(2) + 1;
         } else {
-            action = InputValidator.getInteger(this.getBattleOptions());
+            action = InputValidator.getInteger(this.getBattleOptions(attacker));
         }
 
-        // TODO: desenvolver mais ações da batalha
         switch (action) {
             case 1:
                 attacker.attack(target);
                 break;
             case 2:
-                attacker.deffend();
+                attacker.specialAttack(target);
                 break;
             case 3:
+                attacker.deffend();
+                break;
+            case 4:
                 if (attacker.tryEscape()) {
                     this.setBattleOver(true);
                 } else {
@@ -96,22 +86,28 @@ public final class Battle {
 
         System.out.println(attacker.getName() + ": " + attacker.getLifePoints() + " HP | Ataque: " + attacker.getAttack() + " | Defesa: " + attacker.getDefense());
         System.out.println(target.getName() + ": " + target.getLifePoints() + " HP | Ataque: " + target.getAttack() + " | Defesa: " + target.getDefense());
+
+        if (attacker instanceof Mage) ((Mage) character).regenerateMana(5);
     }
 
     private boolean checkIfBattleIsOver() {
-        if (attacker.isDead() && attacker instanceof Enemy) {
-            endBattle(target, (Enemy) attacker);
-        } else if (target.isDead() && target instanceof Enemy) {
-            endBattle(attacker, (Enemy) target);
+        if (character.isDead()) {
+            endBattle(enemy, character);
+        } else if (enemy.isDead()) {
+            endBattle(character, enemy);
         }
 
         return this.isBattleOver();
     }
 
-    private void endBattle(Character winner, Enemy defeated) {
+    private void endBattle(Character winner, Character defeated) {
         System.out.println(defeated.getName() + " foi derrotado!");
 
-        winner.gainExperience(defeated.getRewardXP());
+        int totalXP = 0;
+        if (defeated instanceof Enemy) {
+            totalXP = ((Enemy) defeated).getRewardXP();
+            winner.gainExperience(totalXP);
+        }
 
         if (defeated instanceof Boss) {
             // TODO: lógica para ganhar os itens especiais do chefão
@@ -121,12 +117,19 @@ public final class Battle {
 
         System.out.println("A batalha terminou!");
         System.out.println("Vencedor: " + winner.getName());
-        System.out.println("Total de XP ganho: " + defeated.getRewardXP());
+        if (totalXP != 0) System.out.println("Total de XP ganho: " + totalXP);
     }
 
-    private String getBattleOptions() {
-        return "[1] Atacar\n" +
-                "[2] Defender\n" +
-                "[3] Tentar fugir";
+    private String getBattleOptions(Character attacker) {
+        String options = "[1] Ataque padrão\n";
+
+        if (attacker instanceof Archer) options = options + "[2] Atirar flecha\n";
+        if (attacker instanceof Mage) options = options + "[2] Lançar feitiço\n";
+        if (attacker instanceof Warrior) options = options + "[2] Soco poderoso\n";
+
+        options = options + "[3] Defender-se\n" +
+                "[4] Tentar fugir";
+
+        return options;
     }
 }

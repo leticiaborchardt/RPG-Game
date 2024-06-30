@@ -6,7 +6,7 @@ import java.util.Scanner;
 /**
  * Classe auxiliar para validar a entrada de dados do usuário através do Scanner.
  */
-public class InputValidator {
+public final class InputValidator {
     static Scanner sc = new Scanner(System.in);
 
     public static int getInteger(String message) {

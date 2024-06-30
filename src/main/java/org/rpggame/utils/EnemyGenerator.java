@@ -7,7 +7,7 @@ import org.rpggame.entities.enemies.EnemyType;
 
 import java.util.Random;
 
-public class EnemyGenerator {
+public final class EnemyGenerator {
     public static Enemy generateRandomEnemy(Character character) {
         Random rand = new Random();
 
