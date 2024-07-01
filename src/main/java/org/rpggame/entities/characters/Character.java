@@ -76,6 +76,18 @@ public abstract class Character {
         this.getItems().add(item);
     }
 
+    public boolean isDead() {
+        return this.getLifePoints() <= 0;
+    }
+
+    public String getFormattedName() {
+        return this.getName() + " Lv" + this.getLevel();
+    }
+
+    protected boolean hasActiveEffect() {
+        return this.getActiveEffect() != null;
+    }
+
     /**
      * Returns a random skill from the character's available skills.
      * Most used when an enemy is selecting a skill to use/attack during the battle.
@@ -91,15 +103,11 @@ public abstract class Character {
         return skills.get(choice);
     }
 
-    public void gainExperience(int xp) {
-        this.setReadyToFightBoss(false);
-        this.setExperience(this.getExperience() + xp);
-
-        while (this.getExperience() >= this.getExperienceRequiredForNextLevel()) {
-            levelUp();
-        }
-    }
-
+    /**
+     * Makes the attack on the informed opponent, reducing their life points.
+     *
+     * @param opponent The given opponent.
+     */
     public void attack(Character opponent) {
         ConsoleMessage.println(this.getName() + " está atacando!", Ansi.Color.YELLOW);
 
@@ -107,6 +115,52 @@ public abstract class Character {
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
     }
 
+    /**
+     * Makes a special attack on the informed opponent, reducing their life points.
+     *
+     * @param opponent The given opponent.
+     */
+    public void specialAttack(Character opponent) {
+        ConsoleMessage.println(this.getName() + " está usando seu ataque especial!", Ansi.Color.YELLOW);
+
+        int damage = Math.max(1, (int) (this.getAttack() * 1.2) - opponent.getDefense());
+        opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.6));
+    }
+
+    /**
+     * Attempts a critical attack based on the given damage and success chance.
+     *
+     * @param damage Attacker's damage.
+     * @param chance The chance of success.
+     * @return The calculated damage, with the probability of increase due to the critical attack.
+     */
+    public int tryCriticalAttack(int damage, double chance) {
+        Random random = new Random();
+        double randomValue = random.nextDouble();
+
+        if (randomValue < chance) {
+            ConsoleMessage.println("ATAQUE CRÍTICO!", Ansi.Color.RED);
+            return damage * 2;
+        }
+
+        return damage;
+    }
+
+    /**
+     * Increases the character's defense points and show a message on the console.
+     */
+    public void deffend() {
+        this.setDefense(this.getDefense() + 3);
+        ConsoleMessage.println(this.getName() + " está se defendendo.", Ansi.Color.YELLOW);
+    }
+
+    /**
+     * Makes a skill attack against the opponent.
+     *
+     * @param opponent The opponent's character.
+     * @param opponentSkill The opponent's ability chosen to attack.
+     * @param choosenSkill The character skill to use.
+     */
     public void skillAttack(Character opponent, Skill opponentSkill, Skill choosenSkill) {
         ConsoleMessage.println(
                 this.getName() + " usou a habilidade \"" + choosenSkill.getName() + "\" contra \"" + opponentSkill.getName() + "\"!",
@@ -117,12 +171,29 @@ public abstract class Character {
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
     }
 
-    public void deffend() {
-        this.setDefense(this.getDefense() + 3);
+    /**
+     * Makes an item attack against the opponent.
+     *
+     * @param opponent The opponent's character.
+     * @param item The chosen item to use.
+     */
+    public void itemAttack(Character opponent, Item item) {
+        ConsoleMessage.println(this.getName() + " usou o item \"" + item.getName() + "\"!", Ansi.Color.YELLOW);
 
-        ConsoleMessage.println(this.getName() + " está se defendendo.", Ansi.Color.YELLOW);
+        Effect effect = new Effect(item.getEffectType());
+        opponent.setActiveEffect(effect);
+
+        ConsoleMessage.println(
+                opponent.getName() + " está sobre o efeito de \"" + effect.getType().getDescription() + "\" durante " + effect.getDuration() + " rodadas!",
+                Ansi.Color.RED
+        );
     }
 
+    /**
+     * Makes an escape attempt and reports the result.
+     *
+     * @return Indicates success or failure.
+     */
     public boolean tryEscape() {
         Random random = new Random();
         boolean successfulEscape = random.nextBoolean();
@@ -138,10 +209,99 @@ public abstract class Character {
         return successfulEscape;
     }
 
-    public boolean isDead() {
-        return this.getLifePoints() <= 0;
+    /**
+     * Regenerates all character points and removes active effects.
+     */
+    public void regenerate() {
+        this.setLifePoints(this.getMaxHealth());
+        this.setAttack(this.getMaxAttack());
+        this.setDefense(this.getMaxDefense());
+        this.setActiveEffect(null);
+        this.setPreventedFromFighting(false);
     }
 
+    /**
+     * Adds experience points to the character. If the experience points exceed the required points for the next level,
+     * the character will level up.
+     *
+     * @param xp the amount of experience points to be added.
+     */
+    public void gainExperience(int xp) {
+        this.setReadyToFightBoss(false);
+        this.setExperience(this.getExperience() + xp);
+
+        while (this.getExperience() >= this.getExperienceRequiredForNextLevel()) {
+            levelUp();
+        }
+    }
+
+    /**
+     * Receive the reward from the enemy boss. It can be a skill or an item.
+     *
+     * @param boss The defeated boss.
+     */
+    public void gainRewards(Boss boss) {
+        Reward reward = boss.getReward();
+
+        if (reward != null) {
+            if (reward instanceof Item) {
+                this.addItem((Item) reward);
+                ConsoleMessage.println("Parabéns! Você ganhou um novo item:", Ansi.Color.BLUE);
+            } else {
+                this.addSkill((Skill) reward);
+                ConsoleMessage.println("Parabéns! Você ganhou uma nova habilidade:", Ansi.Color.BLUE);
+            }
+
+            ConsoleMessage.println(reward.toString(), Ansi.Color.MAGENTA);
+        }
+    }
+
+    /**
+     * Checks if there is an active effect and applies damage or makes the character unplayable.
+     */
+    public void receiveEffect() {
+        if (this.hasActiveEffect()) {
+            Effect effect = this.getActiveEffect();
+
+            if (effect.getType() == EffectType.STUN || effect.getType() == EffectType.SLEEP) {
+                this.setPreventedFromFighting(true);
+
+                if (effect.getDuration() > 0) {
+                    ConsoleMessage.println(this.getName() + " está impedido de realizar ações neste turno devido ao efeito de " + effect.getType().getDescription());
+                }
+            } else {
+                this.setPreventedFromFighting(false);
+            }
+
+            if (effect.getDamage() > 0) {
+                this.setLifePoints(Math.max(0, this.getLifePoints() - effect.getDamage()));
+                ConsoleMessage.println(
+                        this.getName() + " perdeu " + effect.getDamage() + " pontos de vida devido ao efeito de " + effect.getType().getDescription(),
+                        Ansi.Color.RED
+                );
+            }
+        }
+    }
+
+    /**
+     * Checks if there is an active effect and decreases the duration.
+     */
+    public void checkEffectDuration() {
+        if (this.hasActiveEffect()) {
+            this.getActiveEffect().setDuration(this.getActiveEffect().getDuration() - 1);
+
+            if (this.getActiveEffect().getDuration() <= 0) {
+                this.setActiveEffect(null);
+                this.setPreventedFromFighting(false);
+            } else {
+                ConsoleMessage.println("Duração restante: " + this.getActiveEffect().getDuration() + " turnos");
+            }
+        }
+    }
+
+    /**
+     * Prints all character information to the console.
+     */
     public void printInformation() {
         AsciiTable asciiTable = this.getAsciiTable();
         String render = asciiTable.render();
@@ -168,6 +328,72 @@ public abstract class Character {
         }
     }
 
+    /**
+     * Decreases the amount of points given to the character's life
+     * and prints a message to the console.
+     *
+     * @param points Number of points desired.
+     */
+    protected void decreaseLifePoints(int points) {
+        this.setLifePoints(Math.max(0, this.getLifePoints() - points));
+        ConsoleMessage.println(this.getName() + " perdeu " + points + " pontos de vida.", Ansi.Color.RED);
+    }
+
+    /**
+     * Decreases the amount of points given to the character's experience
+     * and prints a message to the console.
+     *
+     * @param points Number of points desired.
+     */
+    protected void decreaseXP(int points) {
+        this.setExperience(Math.max(0, this.getExperience() - points));
+        ConsoleMessage.println(this.getName() + " perdeu " + points + " pontos de XP.", Ansi.Color.RED);
+    }
+
+    /**
+     * Increases the character's level, regenerates their attributes and displays a message on the console.
+     */
+    protected void levelUp() {
+        this.increasePointsLevelUp();
+        this.regenerate();
+        this.showLevelUpMessage();
+    }
+
+    /**
+     * Increases the character's maximum points when he levels up.
+     */
+    protected void increasePointsLevelUp() {
+        this.setLevel(this.getLevel() + 1);
+        this.setExperience(Math.max(0, this.getExperience() - this.getExperienceRequiredForNextLevel()));
+
+        this.setMaxHealth(this.getMaxHealth() + 15);
+        this.setMaxAttack(this.getMaxAttack() + 5);
+        this.setMaxDefense(this.getMaxDefense() + 5);
+    }
+
+    /**
+     * Prints a level up message on the console.
+     */
+    protected void showLevelUpMessage() {
+        ConsoleMessage.println("\nLevel Up! " + this.getName() + " subiu para o nível " + this.getLevel(), Ansi.Color.GREEN);
+        printInformation();
+        ConsoleMessage.println(this.getName() + " está pronto para enfrentar o chefão!", Ansi.Color.MAGENTA);
+    }
+
+    /**
+     * Calculates the experience needed for the next level based on the current level.
+     *
+     * @return The amout of necessary experience.
+     */
+    protected int getExperienceRequiredForNextLevel() {
+        return 100 * this.getLevel();
+    }
+
+    /**
+     * Returns the character information ascii table.
+     *
+     * @return The AsciiTable object created.
+     */
     protected AsciiTable getAsciiTable() {
         AsciiTable asciiTable = new AsciiTable();
 
@@ -179,141 +405,6 @@ public abstract class Character {
 
         asciiTable.setTextAlignment(TextAlignment.CENTER);
         return asciiTable;
-    }
-
-    protected void decreaseLifePoints(int points) {
-        this.setLifePoints(Math.max(0, this.getLifePoints() - points));
-        ConsoleMessage.println(this.getName() + " perdeu " + points + " pontos de vida.", Ansi.Color.RED);
-    }
-
-    protected void decreaseXP(int points) {
-        this.setExperience(Math.max(0, this.getExperience() - points));
-        ConsoleMessage.println(this.getName() + " perdeu " + points + " pontos de XP.", Ansi.Color.RED);
-    }
-
-    protected void levelUp() {
-        this.increasePointsLevelUp();
-        this.regenerate();
-        this.showLevelUpMessage();
-    }
-
-    protected void increasePointsLevelUp() {
-        this.setLevel(this.getLevel() + 1);
-        this.setExperience(Math.max(0, this.getExperience() - this.getExperienceRequiredForNextLevel()));
-
-        this.setMaxHealth(this.getMaxHealth() + 15);
-        this.setMaxAttack(this.getMaxAttack() + 5);
-        this.setMaxDefense(this.getMaxDefense() + 5);
-    }
-
-    protected void showLevelUpMessage() {
-        ConsoleMessage.println("\nLevel Up! " + this.getName() + " subiu para o nível " + this.getLevel(), Ansi.Color.GREEN);
-        printInformation();
-        ConsoleMessage.println(this.getName() + " está pronto para enfrentar o chefão!", Ansi.Color.MAGENTA);
-    }
-
-    protected int getExperienceRequiredForNextLevel() {
-        return 100 * this.getLevel();
-    }
-
-    public String getFormattedName() {
-        return this.getName() + " Lv" + this.getLevel();
-    }
-
-    public void specialAttack(Character opponent) {
-        ConsoleMessage.println(this.getName() + " está usando seu ataque especial!", Ansi.Color.YELLOW);
-
-        int damage = Math.max(1, (int) (this.getAttack() * 1.2) - opponent.getDefense());
-        opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.6));
-    }
-
-    public int tryCriticalAttack(int damage, double chance) {
-        Random random = new Random();
-        double randomValue = random.nextDouble();
-
-        if (randomValue < chance) {
-            ConsoleMessage.println("ATAQUE CRÍTICO!", Ansi.Color.RED);
-            return damage * 2;
-        }
-
-        return damage;
-    }
-
-    public void regenerate() {
-        this.setLifePoints(this.getMaxHealth());
-        this.setAttack(this.getMaxAttack());
-        this.setDefense(this.getMaxDefense());
-        this.setActiveEffect(null);
-        this.setPreventedFromFighting(false);
-    }
-
-    public void gainRewards(Boss boss) {
-        Reward reward = boss.getReward();
-
-        if (reward != null) {
-            if (reward instanceof Item) {
-                this.addItem((Item) reward);
-                ConsoleMessage.println("Parabéns! Você ganhou um novo item:", Ansi.Color.BLUE);
-            } else {
-                this.addSkill((Skill) reward);
-                ConsoleMessage.println("Parabéns! Você ganhou uma nova habilidade:", Ansi.Color.BLUE);
-            }
-
-            ConsoleMessage.println(reward.toString(), Ansi.Color.MAGENTA);
-        }
-    }
-
-    public void itemAttack(Character opponent, Item item) {
-        ConsoleMessage.println(this.getName() + " usou o item \"" + item.getName() + "\"!", Ansi.Color.YELLOW);
-
-        Effect effect = new Effect(item.getEffectType());
-        opponent.setActiveEffect(effect);
-
-        ConsoleMessage.println(
-                opponent.getName() + " está sobre o efeito de \"" + effect.getType().getDescription() + "\" durante " + effect.getDuration() + " rodadas!",
-                Ansi.Color.RED
-        );
-    }
-
-    public void receiveEffect() {
-        if (this.hasActiveEffect()) {
-            Effect effect = this.getActiveEffect();
-
-            if (effect.getType() == EffectType.STUN || effect.getType() == EffectType.SLEEP) {
-                this.setPreventedFromFighting(true);
-
-                if (effect.getDuration() > 0) {
-                    ConsoleMessage.println(this.getName() + " está impedido de realizar ações neste turno devido ao efeito de " + effect.getType().getDescription());
-                }
-            } else {
-                this.setPreventedFromFighting(false);
-            }
-
-            if (effect.getDamage() > 0) {
-                this.setLifePoints(Math.max(0, this.getLifePoints() - effect.getDamage()));
-                ConsoleMessage.println(
-                        this.getName() + " perdeu " + effect.getDamage() + " pontos de vida devido ao efeito de " + effect.getType().getDescription(),
-                        Ansi.Color.RED
-                );
-            }
-        }
-    }
-
-    public void checkEffectDuration() {
-        if (this.hasActiveEffect()) {
-            this.getActiveEffect().setDuration(this.getActiveEffect().getDuration() - 1);
-
-            if (this.getActiveEffect().getDuration() <= 0) {
-                this.setActiveEffect(null);
-                this.setPreventedFromFighting(false);
-            } else {
-                ConsoleMessage.println("Duração restante: " + this.getActiveEffect().getDuration() + " turnos");
-            }
-        }
-    }
-
-    protected boolean hasActiveEffect() {
-        return this.getActiveEffect() != null;
     }
 }
 
