@@ -1,7 +1,10 @@
 package org.rpggame.entities.enemies;
 
+import lombok.Getter;
+
 import java.util.Random;
 
+@Getter
 public enum EnemyType {
     GOBLIN("Goblin"),
     ORC("Orc"),
@@ -14,10 +17,6 @@ public enum EnemyType {
 
     EnemyType(String description) {
         this.description = description;
-    }
-
-    public String getDescription() {
-        return this.description;
     }
 
     public static EnemyType getRandomType() {
