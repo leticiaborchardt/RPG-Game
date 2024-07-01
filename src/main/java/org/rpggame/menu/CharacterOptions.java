@@ -41,8 +41,8 @@ public final class CharacterOptions {
                 return;
         }
 
-        ArrayList<Skill> chosenSkills = SkillsOptions.chooseSkills();
-        character.setSkills(chosenSkills);
+        Skill chosenSkill = SkillsOptions.chooseSkill();
+        character.addSkill(chosenSkill);
 
         characters.add(character);
         ConsoleMessage.println("Personagem criado! Informações:", Ansi.Color.GREEN);

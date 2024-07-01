@@ -55,6 +55,10 @@ public abstract class Character {
         this.skills = skills;
     }
 
+    public void addSkill(Skill skill) {
+        this.getSkills().add(skill);
+    }
+
     public void gainExperience(int xp) {
         this.setReadyToFightBoss(false);
         this.setExperience(this.getExperience() + xp);

@@ -14,12 +14,12 @@ import java.util.List;
  */
 public final class SkillsOptions {
     /**
-     * Allows the user to choose skills from a predefined list.
-     * Displays available skills and prompts the user to select up to three skills.
+     * Allows the user to choose one skill from a predefined list.
+     * Displays available skills and prompts the user to select one skill.
      *
-     * @return An ArrayList of Skill objects, the choosen skills.
+     * @return The choosen skill.
      */
-    public static ArrayList<Skill> chooseSkills() {
+    public static Skill chooseSkill() {
         ArrayList<Skill> availableSkills = new ArrayList<>(List.of(
                 new Skill("Inferno Ardente", SkillType.FIRE, 20, "Uma explosão infernal que incinera os inimigos."),
                 new Skill("Tsunami Devastador", SkillType.WATER, 20, "Uma onda gigantesca que engole e destrói tudo em seu caminho."),
@@ -29,24 +29,20 @@ public final class SkillsOptions {
                 new Skill("Garras do Ártico", SkillType.ICE, 20, "Garras geladas que congelam e destroem os inimigos.")
         ));
 
-        ConsoleMessage.println("Escolha suas habilidades:", Ansi.Color.BLUE);
-        ArrayList<Skill> chosenSkills = new ArrayList<>();
+        while (true) {
+            ConsoleMessage.println("Escolha sua habilidade inicial:", Ansi.Color.BLUE);
 
-        while (chosenSkills.size() < 3) {
             for (int i = 0; i < availableSkills.size(); i++) {
                 ConsoleMessage.println("\n[" + (i + 1) + "] " + availableSkills.get(i).toString());
             }
 
-            int choice = InputValidator.getInteger("\nEscolha uma habilidade (" + (chosenSkills.size() + 1) + "/3):") - 1;
+            int choice = InputValidator.getInteger("\nEscolha uma habilidade") - 1;
 
             if (choice >= 0 && choice < availableSkills.size()) {
-                chosenSkills.add(availableSkills.get(choice));
-                availableSkills.remove(choice);
+                return availableSkills.get(choice);
             } else {
                 ConsoleMessage.printInvalidOptionMessage();
             }
         }
-
-        return chosenSkills;
     }
 }

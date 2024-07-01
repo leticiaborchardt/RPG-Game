@@ -36,7 +36,7 @@ public final class EnemyGenerator {
         int level = Math.max(1, character.getLevel() + levelVariation);
         int rewardXP = level * 50;
         String name = type.getDescription() + " Lv" + level;
-        ArrayList<Skill> skills = generateRandomSkills();
+        ArrayList<Skill> skills = generateRandomSkills(character.getSkills().size());
 
         return new Enemy(name, lifePoints, attack, defense, experience, level, skills, type, rewardXP);
     }
@@ -59,7 +59,7 @@ public final class EnemyGenerator {
         int level = character.getLevel() + 1;
         int rewardXP = level * 100;
         String name = EnemyType.BOSS.getDescription() + " Lv" + level;
-        ArrayList<Skill> skills = generateRandomSkills();
+        ArrayList<Skill> skills = generateRandomSkills(character.getSkills().size());
 
         return new Boss(name, lifePoints, attack, defense, experience, level, skills, EnemyType.BOSS, rewardXP, "");
     }
@@ -67,9 +67,10 @@ public final class EnemyGenerator {
     /**
      * Generates a list of skills by selecting three skills randomly from a predefined list of skills.
      *
+     * @param numberOfSkills Number of skills to generate.
      * @return An ArrayList of Skill objects.
      */
-    private static ArrayList<Skill> generateRandomSkills() {
+    private static ArrayList<Skill> generateRandomSkills(int numberOfSkills) {
         ArrayList<Skill> availableSkills = new ArrayList<>(List.of(
                 new Skill("Inferno Ardente", SkillType.FIRE, 20, "Uma explosão infernal que incinera os inimigos."),
                 new Skill("Tsunami Devastador", SkillType.WATER, 20, "Uma onda gigantesca que engole e destrói tudo em seu caminho."),
@@ -82,7 +83,7 @@ public final class EnemyGenerator {
         ArrayList<Skill> skills = new ArrayList<>();
         Random random = new Random();
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < numberOfSkills; i++) {
             int index = random.nextInt(availableSkills.size());
             skills.add(availableSkills.get(index));
         }
