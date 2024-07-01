@@ -159,7 +159,7 @@ public abstract class Character {
 
     protected void increasePointsLevelUp() {
         this.setLevel(this.getLevel() + 1);
-        this.setExperience(this.getExperience() + this.getExperienceRequiredForNextLevel());
+        this.setExperience(Math.max(0, this.getExperience() - this.getExperienceRequiredForNextLevel()));
 
         this.setMaxHealth(this.getMaxHealth() + 15);
         this.setMaxAttack(this.getMaxAttack() + 5);
