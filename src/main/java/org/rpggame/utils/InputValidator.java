@@ -6,11 +6,19 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
- * Classe auxiliar para validar a entrada de dados do usuário através do Scanner.
+ * Assistant class to validate user data input through the Scanner.
  */
 public final class InputValidator {
     static Scanner sc = new Scanner(System.in);
 
+    /**
+     * Requests and retrieves a positive integer value from the user via the console.
+     * Displays a message to prompt the user for input.
+     * Returns the positive integer value entered by the user after validation.
+     *
+     * @param message The message to display prompting the user for input.
+     * @return The positive integer value entered by the user.
+     */
     public static int getInteger(String message) {
         ConsoleMessage.println(message);
 
@@ -32,12 +40,17 @@ public final class InputValidator {
         }
     }
 
+    /**
+     * Requests and retrieves a string input from the user via the console.
+     * Displays a message to prompt the user for input.
+     * Returns the string entered by the user.
+     *
+     * @param message The message to display prompting the user for input.
+     * @return The string entered by the user.
+     */
     public static String getString(String message) {
         ConsoleMessage.println(message);
 
-        while (true) {
-            String input = sc.nextLine();
-            return input;
-        }
+        return sc.nextLine();
     }
 }

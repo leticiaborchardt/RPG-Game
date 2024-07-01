@@ -7,7 +7,7 @@ import org.fusesource.jansi.Ansi;
 import org.rpggame.entities.enemies.Enemy;
 import org.rpggame.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
-import org.rpggame.utils.DamageCalculator;
+import org.rpggame.utils.SkillDamageCalculator;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -77,7 +77,7 @@ public abstract class Character {
                 Ansi.Color.YELLOW
         );
 
-        int damage = DamageCalculator.calculateDamage(choosenSkill, opponentSkill);
+        int damage = SkillDamageCalculator.calculateDamage(choosenSkill, opponentSkill);
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
     }
 

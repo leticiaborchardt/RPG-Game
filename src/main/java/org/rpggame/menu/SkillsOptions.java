@@ -9,7 +9,16 @@ import org.rpggame.utils.InputValidator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class is used to manipulate the choice of skills for the character in the game.
+ */
 public final class SkillsOptions {
+    /**
+     * Allows the user to choose skills from a predefined list.
+     * Displays available skills and prompts the user to select up to three skills.
+     *
+     * @return An ArrayList of Skill objects, the choosen skills.
+     */
     public static ArrayList<Skill> chooseSkills() {
         ArrayList<Skill> availableSkills = new ArrayList<>(List.of(
                 new Skill("Inferno Ardente", SkillType.FIRE, 20, "Uma explosão infernal que incinera os inimigos."),

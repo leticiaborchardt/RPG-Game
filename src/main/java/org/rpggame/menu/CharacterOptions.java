@@ -11,9 +11,15 @@ import org.rpggame.utils.InputValidator;
 
 import java.util.ArrayList;
 
+/**
+ * Contains the methods responsible for creating or choosing the character.
+ */
 public final class CharacterOptions {
     private static final ArrayList<Character> characters = new ArrayList<>();
 
+    /**
+     * Creates a new character based on user choice and redirects to battle menu options.
+     */
     public static void create() {
         String name = InputValidator.getString("Informe o nome do seu personagem:");
         ConsoleMessage.println("Escolha um tipo de personagem:", Ansi.Color.BLUE);
@@ -45,6 +51,10 @@ public final class CharacterOptions {
         BattleOptions.run(character);
     }
 
+    /**
+     * Displays all existing characters and asks the user to choose one,
+     * then goes to the battle menu options
+     */
     public static void getExistentCharacter() {
         if (characters.isEmpty()) {
             ConsoleMessage.println("Nenhum personagem encontrado!", Ansi.Color.RED);

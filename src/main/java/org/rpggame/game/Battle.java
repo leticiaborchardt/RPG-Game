@@ -15,6 +15,10 @@ import org.rpggame.utils.InputValidator;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * Represents a battle between a player character and an enemy.
+ * Handles the flow of combat actions and outcomes.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -30,6 +34,10 @@ public final class Battle {
         this.isBattleOver = false;
     }
 
+    /**
+     * Initiates the battle sequence between the player character and the enemy.
+     * Manages turn-based combat mechanics until one of the participants is defeated.
+     */
     public void start() {
         listCharacters();
 
@@ -60,7 +68,14 @@ public final class Battle {
         enemy.printInformation();
     }
 
-    private void newTurn(Character attacker, Character target) {
+    /**
+     * Executes a new turn in the battle sequence between two characters.
+     * Manages actions based on the type of the attacker.
+     *
+     * @param attacker The character initiating the turn.
+     * @param opponent The character being targeted by the attacker's actions.
+     */
+    private void newTurn(Character attacker, Character opponent) {
         if (attacker.isDead()) return;
 
         ConsoleMessage.println("\nNOVO TURNO: Turno de " + attacker.getName() + "\n", Ansi.Color.MAGENTA);
@@ -83,10 +98,10 @@ public final class Battle {
 
         switch (action) {
             case 1:
-                attacker.attack(target);
+                attacker.attack(opponent);
                 break;
             case 2:
-                attacker.specialAttack(target);
+                attacker.specialAttack(opponent);
                 break;
             case 3:
                 Skill choosenSkill;
@@ -94,13 +109,13 @@ public final class Battle {
 
                 if (attacker instanceof Enemy) {
                     choosenSkill = chooseRandomSkill(attacker);
-                    opponentSkill = chooseRandomSkill(target);
+                    opponentSkill = chooseRandomSkill(opponent);
                 } else {
                     choosenSkill = chooseSkill(attacker);
-                    opponentSkill = chooseSkill(target);
+                    opponentSkill = chooseSkill(opponent);
                 }
 
-                attacker.skillAttack(target, opponentSkill, choosenSkill);
+                attacker.skillAttack(opponent, opponentSkill, choosenSkill);
                 break;
             case 4:
                 attacker.deffend();
@@ -121,9 +136,15 @@ public final class Battle {
         if (attacker instanceof Mage) ((Mage) character).regenerateMana(5);
 
         attacker.printInformation();
-        target.printInformation();
+        opponent.printInformation();
     }
 
+    /**
+     * Allows the character to choose a skill to use in battle.
+     *
+     * @param character The character choosing the skill.
+     * @return The selected skill from the character's available skills.
+     */
     private Skill chooseSkill(Character character) {
         if (character instanceof Enemy) {
             ConsoleMessage.println("Escolha uma fraqueza do inimigo para atacar:", Ansi.Color.BLUE);
@@ -147,6 +168,13 @@ public final class Battle {
         }
     }
 
+    /**
+     * Chooses a random skill from the character's available skills.
+     * Used when the enemy character is selecting a skill to use during attacks.
+     *
+     * @param character The character from which to choose a skill randomly.
+     * @return A randomly selected skill from the character's skills.
+     */
     private Skill chooseRandomSkill(Character character) {
         ArrayList<Skill> skills = character.getSkills();
 
@@ -156,6 +184,11 @@ public final class Battle {
         return skills.get(choice);
     }
 
+    /**
+     * Checks if the battle is over by verifying if either character or enemy is dead.
+     *
+     * @return True if the battle is over; false otherwise.
+     */
     private boolean checkIfBattleIsOver() {
         if (character.isDead()) {
             endBattle(enemy, character);
@@ -166,6 +199,12 @@ public final class Battle {
         return this.isBattleOver();
     }
 
+    /**
+     * Ends the battle when a character is defeated, declaring the winner and handling rewards.
+     *
+     * @param winner   The character who won the battle.
+     * @param defeated The character who was defeated in the battle.
+     */
     private void endBattle(Character winner, Character defeated) {
         ConsoleMessage.println(defeated.getName() + " foi derrotado!", Ansi.Color.YELLOW);
 
@@ -186,6 +225,12 @@ public final class Battle {
         if (totalXP != 0) ConsoleMessage.println("Total de XP ganho: " + totalXP);
     }
 
+    /**
+     * Generates the battle options menu based on the type of attacker.
+     *
+     * @param attacker The character initiating the battle turn.
+     * @return A string representing the available battle options.
+     */
     private String getBattleOptions(Character attacker) {
         String options = "[1] Ataque padrão\n";
 
