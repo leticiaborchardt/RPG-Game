@@ -1,6 +1,10 @@
 package org.rpggame.entities.characters;
 
+import de.vandermeer.asciitable.AsciiTable;
+import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 import lombok.*;
+import org.fusesource.jansi.Ansi;
+import org.rpggame.utils.ConsoleMessage;
 
 @Getter
 @Setter
@@ -11,30 +15,34 @@ public class Mage extends Character {
     private int maxMana;
     private int magicPower;
     private int maxMagicPower;
-    private int magicResistance;
-    private int maxMagicResistance;
 
     public Mage(String name) {
         super(name, 80, 20, 5);
         this.maxMagicPower = 20;
         this.magicPower = this.maxMagicPower;
-        this.maxMagicResistance = 5;
-        this.magicResistance = this.maxMagicResistance;
         this.maxMana = 100;
         this.mana = this.maxMana;
     }
 
-    public void printInformation() {
-        super.printInformation();
-        System.out.println("Mana: " + this.getMana());
-        System.out.println("Poder Mágico: " + this.getMagicPower());
-        System.out.println("Resistência à magia: " + this.getMagicResistance());
+    @Override
+    public String getFormattedName() {
+        return this.getName() + " - Mago Lv" + this.getLevel();
+    }
+
+    public void regenerateMana(int points) {
+        this.setMana(this.getMana() + points);
+        ConsoleMessage.println(this.getName() + " regenerou " + points + " de mana.", Ansi.Color.GREEN);
+    }
+
+    private void decreaseMana(int points) {
+        this.setMana(Math.max(0, this.getMana() - points));
+        ConsoleMessage.println(this.getName() + " perdeu " + points + " pontos de mana.", Ansi.Color.RED);
     }
 
     @Override
     public void specialAttack(Character opponent) {
         if (this.getMana() >= 20) {
-            System.out.println(this.getName() + " está usando seu ataque especial!");
+            ConsoleMessage.println(this.getName() + " está usando seu ataque especial!", Ansi.Color.YELLOW);
 
             int damage = Math.max(1, this.getAttack() + this.getMagicPower() - opponent.getDefense());
 
@@ -42,26 +50,19 @@ public class Mage extends Character {
 
             this.decreaseMana(20);
         } else {
-            System.out.println(this.getName() + " não possui mana o suficiente para atacar!");
+            ConsoleMessage.println(this.getName() + " não possui mana o suficiente para atacar!", Ansi.Color.RED);
         }
     }
 
     @Override
     public void levelUp() {
-        this.setLevel(this.getLevel() + 1);
-        this.setExperience(this.getExperience() - this.getExperienceRequiredForNextLevel());
-
         this.increasePointsLevelUp();
 
         this.setMaxMagicPower(this.getMaxMagicPower() + 5);
-        this.setMaxMagicResistance(this.getMaxMagicResistance() + 3);
         this.setMaxMana(this.getMaxMana() + 10);
 
         this.setReadyToFightBoss(true);
-
-        System.out.println("Level Up! " + this.getName() + " subiu para o nível " + this.getLevel());
-        printInformation();
-        System.out.println(this.getName() + " está pronto para enfrentar o chefão!");
+        this.showLevelUpMessage();
     }
 
     @Override
@@ -71,16 +72,22 @@ public class Mage extends Character {
         this.setDefense(this.getMaxDefense());
         this.setMana(this.getMaxMana());
         this.setMagicPower(this.getMaxMagicPower());
-        this.setMagicResistance(this.getMaxMagicResistance());
     }
 
-    public void regenerateMana(int points) {
-        this.setMana(this.getMana() + points);
-        System.out.println(this.getName() + " regenerou " + points + " de mana.");
-    }
+    @Override
+    protected AsciiTable getAsciiTable() {
+        AsciiTable asciiTable = new AsciiTable();
 
-    private void decreaseMana(int points) {
-        this.setMana(Math.max(0, this.getMana() - points));
-        System.out.println(this.getName() + " perdeu " + points + " pontos de mana.");
+        asciiTable.addRule();
+        asciiTable.addRow("Nome", "Classe", "Vida", "Ataque", "Defesa", "Mana", "Poder Mágico");
+        asciiTable.addRule();
+        asciiTable.addRow(
+                this.getName(), "Mago Lv" + this.getLevel(), this.getLifePoints(), this.getAttack(),
+                this.getDefense(), this.getMana(), this.getMagicPower()
+        );
+        asciiTable.addRule();
+
+        asciiTable.setTextAlignment(TextAlignment.CENTER);
+        return asciiTable;
     }
 }

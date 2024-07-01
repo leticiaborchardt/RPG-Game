@@ -1,19 +1,19 @@
 package org.rpggame.menu;
 
+import org.fusesource.jansi.Ansi;
 import org.rpggame.entities.characters.Character;
 import org.rpggame.entities.enemies.Enemy;
 import org.rpggame.game.Battle;
+import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.EnemyGenerator;
 import org.rpggame.utils.InputValidator;
 
 public class BattleOptions {
     public static void run(Character character) {
-        boolean runBattle = true;
+        while (true) {
+            ConsoleMessage.println("\n" + character.getName() + ", escolha uma opção abaixo:", Ansi.Color.BLUE);
 
-        System.out.println(character.getName() + ", escolha uma opção abaixo:");
-
-        while (runBattle) {
-            switch (InputValidator.getInteger(showBattleOptions())) {
+            switch (InputValidator.getInteger(getBattleOptions())) {
                 case 1:
                     character.regenerate();
 
@@ -27,16 +27,15 @@ public class BattleOptions {
                     new Battle(character, enemy).start();
                     break;
                 case 2:
-                    runBattle = false;
-                    break;
+                    return;
                 default:
-                    System.out.println("Opção inválida! Tente novamente.");
+                    ConsoleMessage.printInvalidOptionMessage();
                     break;
             }
         }
     }
 
-    private static String showBattleOptions() {
+    private static String getBattleOptions() {
         return "[1] Iniciar nova batalha\n" +
                 "[2] Voltar";
     }

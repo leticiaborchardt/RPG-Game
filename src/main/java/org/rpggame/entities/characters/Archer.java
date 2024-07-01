@@ -1,6 +1,10 @@
 package org.rpggame.entities.characters;
 
+import de.vandermeer.asciitable.AsciiTable;
+import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 import lombok.*;
+import org.fusesource.jansi.Ansi;
+import org.rpggame.utils.ConsoleMessage;
 
 @Getter
 @Setter
@@ -20,15 +24,14 @@ public class Archer extends Character {
         this.agility = this.maxAgility;
     }
 
-    public void printInformation() {
-        super.printInformation();
-        System.out.println("Precisão: " + this.getPrecision());
-        System.out.println("Agilidade: " + this.getAgility());
+    @Override
+    public String getFormattedName() {
+        return this.getName() + " - Arqueiro Lv" + this.getLevel();
     }
 
     @Override
     public void specialAttack(Character opponent) {
-        System.out.println(this.getName() + " está usando seu ataque especial!");
+        ConsoleMessage.println(this.getName() + " está usando seu ataque especial!", Ansi.Color.YELLOW);
 
         int damage = Math.max(1, this.getAttack() + this.getPrecision() - opponent.getDefense());
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
@@ -36,19 +39,13 @@ public class Archer extends Character {
 
     @Override
     public void levelUp() {
-        this.setLevel(this.getLevel() + 1);
-        this.setExperience(this.getExperience() - this.getExperienceRequiredForNextLevel());
-
         this.increasePointsLevelUp();
 
         this.setMaxPrecision(this.getMaxPrecision() + 5);
         this.setMaxAgility(this.getMaxAgility() + 5);
 
         this.setReadyToFightBoss(true);
-
-        System.out.println("Level Up! " + this.getName() + " subiu para o nível " + this.getLevel());
-        printInformation();
-        System.out.println(this.getName() + " está pronto para enfrentar o chefão!");
+        this.showLevelUpMessage();
     }
 
     @Override
@@ -58,5 +55,22 @@ public class Archer extends Character {
         this.setDefense(this.getMaxDefense());
         this.setAgility(this.getMaxAgility());
         this.setPrecision(this.getMaxPrecision());
+    }
+
+    @Override
+    protected AsciiTable getAsciiTable() {
+        AsciiTable asciiTable = new AsciiTable();
+
+        asciiTable.addRule();
+        asciiTable.addRow("Nome", "Classe", "Vida", "Ataque", "Defesa", "Precisão", "Agilidade");
+        asciiTable.addRule();
+        asciiTable.addRow(
+                this.getName(), "Arqueiro Lv" + this.getLevel(), this.getLifePoints(), this.getAttack(),
+                this.getDefense(), this.getPrecision(),this.getAgility()
+        );
+        asciiTable.addRule();
+
+        asciiTable.setTextAlignment(TextAlignment.CENTER);
+        return asciiTable;
     }
 }

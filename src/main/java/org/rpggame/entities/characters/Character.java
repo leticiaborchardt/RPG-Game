@@ -1,7 +1,12 @@
 package org.rpggame.entities.characters;
 
+import de.vandermeer.asciitable.AsciiTable;
+import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 import lombok.*;
+import org.fusesource.jansi.Ansi;
+import org.rpggame.entities.enemies.Enemy;
 import org.rpggame.skills.Skill;
+import org.rpggame.utils.ConsoleMessage;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -59,7 +64,7 @@ public abstract class Character {
     }
 
     public void attack(Character opponent) {
-        System.out.println(this.getName() + " está atacando!");
+        ConsoleMessage.println(this.getName() + " está atacando!", Ansi.Color.YELLOW);
 
         int damage = Math.max(1, this.getAttack() - opponent.getDefense());
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
@@ -68,7 +73,7 @@ public abstract class Character {
     public void deffend() {
         this.setDefense(this.getDefense() + 3);
 
-        System.out.println(this.getName() + " está se defendendo.");
+        ConsoleMessage.println(this.getName() + " está se defendendo.", Ansi.Color.YELLOW);
     }
 
     public boolean tryEscape() {
@@ -76,10 +81,10 @@ public abstract class Character {
         boolean successfulEscape = random.nextBoolean();
 
         if (successfulEscape) {
-            System.out.println(this.getName() + " está fugindo!");
+            ConsoleMessage.println(this.getName() + " está fugindo!", Ansi.Color.GREEN);
             this.decreaseXP(50);
         } else {
-            System.out.println(this.getName() + " tentou fugir porém fracassou.");
+            ConsoleMessage.println(this.getName() + " tentou fugir porém fracassou.", Ansi.Color.RED);
             this.decreaseLifePoints((int) (this.getLifePoints() * 1.2));
         }
 
@@ -91,43 +96,70 @@ public abstract class Character {
     }
 
     public void printInformation() {
-        System.out.println("Nome: " + this.getName());
-        System.out.println("Vida: " + this.getLifePoints());
-        System.out.println("Ataque: " + this.getAttack());
-        System.out.println("Defesa: " + this.getDefense());
-        System.out.println("XP: " + this.getExperience());
-        System.out.println("Nível: " + this.getLevel());
+        AsciiTable asciiTable = this.getAsciiTable();
+        String render = asciiTable.render();
+
+        ConsoleMessage.println(render, this instanceof Enemy ? Ansi.Color.RED : Ansi.Color.GREEN);
+
+        if (!(this instanceof Enemy)) {
+            ConsoleMessage.println("Total XP: " + this.getExperience(), Ansi.Color.GREEN);
+            ConsoleMessage.println("XP necessária para o próximo nível: " + this.getExperienceRequiredForNextLevel() + "\n", Ansi.Color.WHITE);
+        }
+    }
+
+    protected AsciiTable getAsciiTable() {
+        AsciiTable asciiTable = new AsciiTable();
+
+        asciiTable.addRule();
+        asciiTable.addRow("Nome", "Vida", "Ataque", "Defesa", "Level");
+        asciiTable.addRule();
+        asciiTable.addRow(this.getName(), this.getLifePoints(), this.getAttack(), this.getDefense(), this.getLevel());
+        asciiTable.addRule();
+
+        asciiTable.setTextAlignment(TextAlignment.CENTER);
+        return asciiTable;
     }
 
     protected void decreaseLifePoints(int points) {
         this.setLifePoints(Math.max(0, this.getLifePoints() - points));
-        System.out.println(this.getName() + " perdeu " + points + " pontos de vida.");
+        ConsoleMessage.println(this.getName() + " perdeu " + points + " pontos de vida.", Ansi.Color.RED);
     }
 
     protected void decreaseXP(int points) {
         this.setExperience(Math.max(0, this.getExperience() - points));
-        System.out.println(this.getName() + " perdeu " + points + " pontos de XP.");
+        ConsoleMessage.println(this.getName() + " perdeu " + points + " pontos de XP.", Ansi.Color.RED);
     }
 
     protected void levelUp() {
-        this.setLevel(this.getLevel() + 1);
-        this.setExperience(this.getExperience() - this.getExperienceRequiredForNextLevel());
-
         this.increasePointsLevelUp();
+        this.showLevelUpMessage();
     }
 
     protected void increasePointsLevelUp() {
+        this.setLevel(this.getLevel() + 1);
+        this.setExperience(this.getExperience() + this.getExperienceRequiredForNextLevel());
+
         this.setMaxHealth(this.getMaxHealth() + 15);
         this.setMaxAttack(this.getMaxAttack() + 5);
         this.setMaxDefense(this.getMaxDefense() + 5);
+    }
+
+    protected void showLevelUpMessage() {
+        ConsoleMessage.println("Level Up! " + this.getName() + " subiu para o nível " + this.getLevel(), Ansi.Color.GREEN);
+        printInformation();
+        ConsoleMessage.println(this.getName() + " está pronto para enfrentar o chefão!", Ansi.Color.MAGENTA);
     }
 
     protected int getExperienceRequiredForNextLevel() {
         return 100 * this.getLevel();
     }
 
+    public String getFormattedName() {
+        return this.getName() + " Lv" + this.getLevel();
+    }
+
     public void specialAttack(Character opponent) {
-        System.out.println(this.getName() + " está usando seu ataque especial!");
+        ConsoleMessage.println(this.getName() + " está usando seu ataque especial!", Ansi.Color.YELLOW);
 
         int damage = Math.max(1, (int)(this.getAttack() * 1.2) - opponent.getDefense());
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.6));
@@ -138,7 +170,7 @@ public abstract class Character {
         double randomValue = random.nextDouble();
 
         if (randomValue < chance) {
-            System.out.println("ATAQUE CRÍTICO!");
+            ConsoleMessage.println("ATAQUE CRÍTICO!", Ansi.Color.RED);
             return damage * 2;
         }
 

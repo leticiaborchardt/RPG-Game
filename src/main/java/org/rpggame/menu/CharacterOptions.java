@@ -1,19 +1,25 @@
 package org.rpggame.menu;
 
+import org.fusesource.jansi.Ansi;
 import org.rpggame.entities.characters.Archer;
 import org.rpggame.entities.characters.Character;
 import org.rpggame.entities.characters.Mage;
 import org.rpggame.entities.characters.Warrior;
+import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.InputValidator;
 
+import java.util.ArrayList;
+
 public final class CharacterOptions {
+    private static final ArrayList<Character> characters = new ArrayList<>();
+
     public static void create() {
         String name = InputValidator.getString("Informe o nome do seu personagem:");
-        System.out.println("Escolha um tipo de personagem:");
+        ConsoleMessage.println("Escolha um tipo de personagem:", Ansi.Color.BLUE);
 
         Character character;
 
-        switch (InputValidator.getInteger(showCharacterOptions())) {
+        switch (InputValidator.getInteger(getCharacterMenuOptions())) {
             case 1:
                 character = new Mage(name);
                 break;
@@ -24,31 +30,61 @@ public final class CharacterOptions {
                 character = new Warrior(name);
                 break;
             default:
-                System.out.println("Opção inválida! Tente novamente.");
+                ConsoleMessage.printInvalidOptionMessage();
                 return;
         }
 
-        if (character != null) {
-            System.out.println("Personagem criado!\n------- Informações -------");
-            character.printInformation();
-            System.out.println("---------------------------");
+        characters.add(character);
+        ConsoleMessage.println("Personagem criado! Informações:", Ansi.Color.GREEN);
+        character.printInformation();
 
-            initBattleMenu(character);
+        BattleOptions.run(character);
+    }
+
+    public static void getExistentCharacter() {
+        if (characters.isEmpty()) {
+            ConsoleMessage.println("Nenhum personagem encontrado!", Ansi.Color.RED);
+            return;
+        }
+
+        while (true) {
+            showCharacterOptions();
+
+            int cancelOption = characters.size() + 1;
+            ConsoleMessage.println("[" + cancelOption + "] Voltar");
+
+            int choice = InputValidator.getInteger("");
+
+            if (choice == cancelOption) {
+                return;
+            }
+
+            if (choice >= 1 && choice <= characters.size()) {
+                Character choosenCharacter = characters.get(choice - 1);
+                ConsoleMessage.println("Personagem escolhido:", Ansi.Color.GREEN);
+                choosenCharacter.printInformation();
+
+                BattleOptions.run(choosenCharacter);
+
+                return;
+            } else {
+                ConsoleMessage.printInvalidOptionMessage();
+            }
         }
     }
 
-    // TODO: escolha de personagem carregado (banco de dados)
-    public static void getExistentCharacter() {
-//        initBattleMenu();
+    private static void showCharacterOptions() {
+        ConsoleMessage.println("Escolha o seu personagem:");
+
+        for (int i = 0; i < characters.size(); i++) {
+            Character character = characters.get(i);
+            ConsoleMessage.println("[" + (i + 1) + "] " + character.getFormattedName());
+        }
     }
 
-    private static void initBattleMenu(Character choosenCharacter) {
-        BattleOptions.run(choosenCharacter);
-    }
-
-    private static String showCharacterOptions() {
+    private static String getCharacterMenuOptions() {
         return "[1] Mago\n" +
                 "[2] Arqueiro\n" +
-                "[3] Warrior";
+                "[3] Guerreiro";
     }
 }

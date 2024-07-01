@@ -1,6 +1,10 @@
 package org.rpggame.entities.characters;
 
+import de.vandermeer.asciitable.AsciiTable;
+import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 import lombok.*;
+import org.fusesource.jansi.Ansi;
+import org.rpggame.utils.ConsoleMessage;
 
 @Getter
 @Setter
@@ -12,7 +16,6 @@ public class Warrior extends Character {
     private int endurance;
     private int maxEndurance;
 
-
     public Warrior(String name) {
         super(name, 100, 15, 10);
         this.maxStrength = 10;
@@ -21,15 +24,14 @@ public class Warrior extends Character {
         this.endurance = this.maxEndurance;
     }
 
-    public void printInformation() {
-        super.printInformation();
-        System.out.println("Força: " + this.getStrength());
-        System.out.println("Resistência: " + this.getEndurance());
+    @Override
+    public String getFormattedName() {
+        return this.getName() + " - Guerreiro Lv" + this.getLevel();
     }
 
     @Override
     public void specialAttack(Character opponent) {
-        System.out.println(this.getName() + " está usando seu ataque especial!");
+        ConsoleMessage.println(this.getName() + " está usando seu ataque especial!", Ansi.Color.YELLOW);
 
         int damage = Math.max(1, this.getStrength() * 3 - opponent.getDefense());
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
@@ -37,19 +39,13 @@ public class Warrior extends Character {
 
     @Override
     public void levelUp() {
-        this.setLevel(this.getLevel() + 1);
-        this.setExperience(this.getExperience() - this.getExperienceRequiredForNextLevel());
-
         this.increasePointsLevelUp();
 
         this.setStrength(this.getMaxStrength() + 5);
         this.setEndurance(this.getMaxEndurance() + 5);
 
         this.setReadyToFightBoss(true);
-
-        System.out.println("Level Up! " + this.getName() + " subiu para o nível " + this.getLevel());
-        printInformation();
-        System.out.println(this.getName() + " está pronto para enfrentar o chefão!");
+        this.showLevelUpMessage();
     }
 
     @Override
@@ -59,5 +55,22 @@ public class Warrior extends Character {
         this.setDefense(this.getMaxDefense());
         this.setEndurance(this.getMaxEndurance());
         this.setStrength(this.getMaxStrength());
+    }
+
+    @Override
+    protected AsciiTable getAsciiTable() {
+        AsciiTable asciiTable = new AsciiTable();
+
+        asciiTable.addRule();
+        asciiTable.addRow("Nome", "Classe", "Vida", "Ataque", "Defesa", "Força", "Resistência");
+        asciiTable.addRule();
+        asciiTable.addRow(
+                this.getName(), "Guerreiro Lv" + this.getLevel(), this.getLifePoints(), this.getAttack(),
+                this.getDefense(), this.getStrength(), this.getEndurance()
+        );
+        asciiTable.addRule();
+
+        asciiTable.setTextAlignment(TextAlignment.CENTER);
+        return asciiTable;
     }
 }
