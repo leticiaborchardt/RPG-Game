@@ -50,9 +50,9 @@ public final class EnemyGenerator {
      * as well as a random set of skills from predefined available skills.
      *
      * @param character The character object whose attributes influence the boss's stats.
-     * @return A boss Enemy object with increased attributes and random skills.
+     * @return A Boss object with increased attributes and random skills.
      */
-    public static Enemy generateBoss(Character character) {
+    public static Boss generateBoss(Character character) {
         Random rand = new Random();
 
         int lifePoints = (int) (character.getLifePoints() * (1.0 + 0.2 * rand.nextDouble()));

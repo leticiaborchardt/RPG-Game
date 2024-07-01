@@ -25,12 +25,9 @@ public class BattleOptions {
                 case 1:
                     character.regenerate();
 
-                    Enemy enemy;
-                    if (character.isReadyToFightBoss()) {
-                        enemy = EnemyGenerator.generateBoss(character);
-                    } else {
-                        enemy = EnemyGenerator.generateRandomEnemy(character);
-                    }
+                    Enemy enemy = character.isReadyToFightBoss()
+                            ? EnemyGenerator.generateBoss(character)
+                            : EnemyGenerator.generateRandomEnemy(character);
 
                     new Battle(character, enemy).start();
                     break;
