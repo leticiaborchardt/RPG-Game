@@ -8,9 +8,11 @@ import org.rpggame.entities.characters.Mage;
 import org.rpggame.entities.characters.Warrior;
 import org.rpggame.entities.enemies.Boss;
 import org.rpggame.entities.enemies.Enemy;
+import org.rpggame.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.InputValidator;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 @Getter
@@ -67,13 +69,13 @@ public final class Battle {
         if (attacker instanceof Enemy) {
             try {
                 ConsoleMessage.println(attacker.getName() + " está escolhendo sua ação...");
-                Thread.sleep(5000);
+                Thread.sleep(4000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
             Random random = new Random();
-            action = random.nextInt(2) + 1;
+            action = random.nextInt(3) + 1;
         } else {
             ConsoleMessage.println("Escolha uma ação:", Ansi.Color.BLUE);
             action = InputValidator.getInteger(this.getBattleOptions(attacker));
@@ -87,9 +89,23 @@ public final class Battle {
                 attacker.specialAttack(target);
                 break;
             case 3:
-                attacker.deffend();
+                Skill choosenSkill;
+                Skill opponentSkill;
+
+                if (attacker instanceof Enemy) {
+                    choosenSkill = chooseRandomSkill(attacker);
+                    opponentSkill = chooseRandomSkill(target);
+                } else {
+                    choosenSkill = chooseSkill(attacker);
+                    opponentSkill = chooseSkill(target);
+                }
+
+                attacker.skillAttack(target, opponentSkill, choosenSkill);
                 break;
             case 4:
+                attacker.deffend();
+                break;
+            case 5:
                 if (attacker.tryEscape()) {
                     this.setBattleOver(true);
                     ConsoleMessage.println("\nA batalha terminou!" , Ansi.Color.RED);
@@ -106,6 +122,38 @@ public final class Battle {
 
         attacker.printInformation();
         target.printInformation();
+    }
+
+    private Skill chooseSkill(Character character) {
+        if (character instanceof Enemy) {
+            ConsoleMessage.println("Escolha uma fraqueza do inimigo para atacar:", Ansi.Color.BLUE);
+        } else {
+            ConsoleMessage.println(character.getName() + ", escolha uma habilidade para usar:", Ansi.Color.BLUE);
+        }
+
+        ArrayList<Skill> skills = character.getSkills();
+
+        for (int i = 0; i < skills.size(); i++) {
+            ConsoleMessage.println("\n[" +(i + 1) + "] " + skills.get(i).toString(), Ansi.Color.CYAN);
+        }
+
+        int choice = InputValidator.getInteger("Escolha uma habilidade:") - 1;
+
+        if (choice >= 0 && choice < skills.size()) {
+            return skills.get(choice);
+        } else {
+            ConsoleMessage.printInvalidOptionMessage();
+            return chooseSkill(character);
+        }
+    }
+
+    private Skill chooseRandomSkill(Character character) {
+        ArrayList<Skill> skills = character.getSkills();
+
+        Random random = new Random();
+        int choice = random.nextInt(skills.size());
+
+        return skills.get(choice);
     }
 
     private boolean checkIfBattleIsOver() {
@@ -141,12 +189,13 @@ public final class Battle {
     private String getBattleOptions(Character attacker) {
         String options = "[1] Ataque padrão\n";
 
-        if (attacker instanceof Archer) options = options + "[2] Atirar flecha\n";
-        if (attacker instanceof Mage) options = options + "[2] Lançar feitiço\n";
-        if (attacker instanceof Warrior) options = options + "[2] Soco poderoso\n";
+        if (attacker instanceof Archer) options = options + "[2] Ataque especial (Arqueiro)\n";
+        if (attacker instanceof Mage) options = options + "[2] Ataque especial (Mago)\n";
+        if (attacker instanceof Warrior) options = options + "[2] Ataque especial (Guerreiro)\n";
 
-        options = options + "[3] Defender-se\n" +
-                "[4] Tentar fugir";
+        options = options + "[3] Usar habilidade\n" +
+                "[4] Defender-se\n" +
+                "[5] Tentar fugir";
 
         return options;
     }

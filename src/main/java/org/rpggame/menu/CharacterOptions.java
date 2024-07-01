@@ -5,6 +5,7 @@ import org.rpggame.entities.characters.Archer;
 import org.rpggame.entities.characters.Character;
 import org.rpggame.entities.characters.Mage;
 import org.rpggame.entities.characters.Warrior;
+import org.rpggame.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.InputValidator;
 
@@ -33,6 +34,9 @@ public final class CharacterOptions {
                 ConsoleMessage.printInvalidOptionMessage();
                 return;
         }
+
+        ArrayList<Skill> chosenSkills = SkillsOptions.chooseSkills();
+        character.setSkills(chosenSkills);
 
         characters.add(character);
         ConsoleMessage.println("Personagem criado! Informações:", Ansi.Color.GREEN);

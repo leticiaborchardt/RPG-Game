@@ -7,6 +7,7 @@ import org.fusesource.jansi.Ansi;
 import org.rpggame.entities.enemies.Enemy;
 import org.rpggame.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
+import org.rpggame.utils.DamageCalculator;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -26,7 +27,7 @@ public abstract class Character {
     protected int experience;
     protected int level;
     protected boolean isReadyToFightBoss;
-    protected ArrayList<Skill> skills;
+    protected ArrayList<Skill> skills = new ArrayList<>();
 
     public Character(String name, int maxHealth, int maxAttack, int maxDefense) {
         this.name = name;
@@ -39,10 +40,9 @@ public abstract class Character {
         this.experience = 0;
         this.level = 1;
         this.isReadyToFightBoss = false;
-        this.skills = new ArrayList<>();
     }
 
-    public Character(String name, int maxHealth, int maxAttack, int maxDefense, int experience, int level) {
+    public Character(String name, int maxHealth, int maxAttack, int maxDefense, int experience, int level, ArrayList<Skill> skills) {
         this.name = name;
         this.lifePoints = maxHealth;
         this.maxHealth = maxHealth;
@@ -52,6 +52,7 @@ public abstract class Character {
         this.maxDefense = maxDefense;
         this.experience = experience;
         this.level = level;
+        this.skills = skills;
     }
 
     public void gainExperience(int xp) {
@@ -67,6 +68,16 @@ public abstract class Character {
         ConsoleMessage.println(this.getName() + " está atacando!", Ansi.Color.YELLOW);
 
         int damage = Math.max(1, this.getAttack() - opponent.getDefense());
+        opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
+    }
+
+    public void skillAttack(Character opponent, Skill opponentSkill, Skill choosenSkill) {
+        ConsoleMessage.println(
+                this.getName() + " usou a habilidade \"" + choosenSkill.getName() + "\" contra \"" + opponentSkill.getName() + "\"!",
+                Ansi.Color.YELLOW
+        );
+
+        int damage = DamageCalculator.calculateDamage(choosenSkill, opponentSkill);
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.3));
     }
 
@@ -100,6 +111,13 @@ public abstract class Character {
         String render = asciiTable.render();
 
         ConsoleMessage.println(render, this instanceof Enemy ? Ansi.Color.RED : Ansi.Color.GREEN);
+
+        if (!this.getSkills().isEmpty()) {
+            ConsoleMessage.println("Habilidades", this instanceof Enemy ? Ansi.Color.RED : Ansi.Color.GREEN);
+            for (Skill skill : this.getSkills()) {
+                ConsoleMessage.println(skill.getName() + " | Tipo: " + skill.getType().getDescription() + " | Dano base: " + skill.getBaseDamage());
+            }
+        }
 
         if (!(this instanceof Enemy)) {
             ConsoleMessage.println("Total XP: " + this.getExperience(), Ansi.Color.GREEN);
@@ -161,7 +179,7 @@ public abstract class Character {
     public void specialAttack(Character opponent) {
         ConsoleMessage.println(this.getName() + " está usando seu ataque especial!", Ansi.Color.YELLOW);
 
-        int damage = Math.max(1, (int)(this.getAttack() * 1.2) - opponent.getDefense());
+        int damage = Math.max(1, (int) (this.getAttack() * 1.2) - opponent.getDefense());
         opponent.decreaseLifePoints(this.tryCriticalAttack(damage, 0.6));
     }
 
