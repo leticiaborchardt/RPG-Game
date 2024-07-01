@@ -56,6 +56,8 @@ public class Warrior extends Character {
         this.setDefense(this.getMaxDefense());
         this.setEndurance(this.getMaxEndurance());
         this.setStrength(this.getMaxStrength());
+        this.setActiveEffect(null);
+        this.setPreventedFromFighting(false);
     }
 
     @Override

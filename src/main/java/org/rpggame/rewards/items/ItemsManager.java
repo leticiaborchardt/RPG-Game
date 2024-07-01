@@ -63,14 +63,19 @@ public final class ItemsManager {
      * @return An ArrayList of Items objects.
      */
     public static ArrayList<Item> generateRandomItems(int numberOfItems) {
-        ArrayList<Item> availableSkills = ItemsManager.defaultItems;
+        ArrayList<Item> availableItems = new ArrayList<>(ItemsManager.defaultItems);
 
         ArrayList<Item> items = new ArrayList<>();
         Random random = new Random();
 
         for (int i = 0; i < numberOfItems; i++) {
-            int index = random.nextInt(availableSkills.size());
-            items.add(availableSkills.get(index));
+            if (availableItems.isEmpty()) {
+                break;
+            }
+
+            int index = random.nextInt(availableItems.size());
+            items.add(availableItems.get(index));
+            availableItems.remove(index);
         }
 
         return items;

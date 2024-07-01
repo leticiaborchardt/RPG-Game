@@ -58,8 +58,6 @@ public final class Battle {
                 break;
             }
         }
-
-
     }
 
     private void showEndOfTurnMessage() {
@@ -93,6 +91,16 @@ public final class Battle {
         if (attacker.isDead()) return;
 
         ConsoleMessage.println("\nNOVO TURNO: Turno de " + attacker.getName() + "\n", Ansi.Color.MAGENTA);
+
+        attacker.receiveEffect();
+        opponent.receiveEffect();
+
+        if (attacker.isPreventedFromFighting()) {
+            return;
+        }
+
+        attacker.checkEffectDuration();
+        opponent.checkEffectDuration();
 
         while (true) {
             switch (getTurnAction(attacker)) {

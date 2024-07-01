@@ -32,6 +32,7 @@ public abstract class Character {
     protected int experience;
     protected int level;
     protected boolean isReadyToFightBoss;
+    protected boolean isPreventedFromFighting;
     protected ArrayList<Skill> skills = new ArrayList<>();
     protected ArrayList<Item> items = new ArrayList<>();
     protected Effect activeEffect;
@@ -47,6 +48,8 @@ public abstract class Character {
         this.experience = 0;
         this.level = 1;
         this.isReadyToFightBoss = false;
+        this.isPreventedFromFighting = false;
+        this.activeEffect = null;
     }
 
     public Character(String name, int maxHealth, int maxAttack, int maxDefense, int experience, int level, ArrayList<Skill> skills, ArrayList<Item> items) {
@@ -61,6 +64,8 @@ public abstract class Character {
         this.level = level;
         this.skills = skills;
         this.items = items;
+        this.isPreventedFromFighting = false;
+        this.activeEffect = null;
     }
 
     public void addSkill(Skill skill) {
@@ -238,6 +243,8 @@ public abstract class Character {
         this.setLifePoints(this.getMaxHealth());
         this.setAttack(this.getMaxAttack());
         this.setDefense(this.getMaxDefense());
+        this.setActiveEffect(null);
+        this.setPreventedFromFighting(false);
     }
 
     public void gainRewards(Boss boss) {
@@ -267,4 +274,46 @@ public abstract class Character {
                 Ansi.Color.RED
         );
     }
+
+    public void receiveEffect() {
+        if (this.hasActiveEffect()) {
+            Effect effect = this.getActiveEffect();
+
+            if (effect.getType() == EffectType.STUN || effect.getType() == EffectType.SLEEP) {
+                this.setPreventedFromFighting(true);
+
+                if (effect.getDuration() > 0) {
+                    ConsoleMessage.println(this.getName() + " está impedido de realizar ações neste turno devido ao efeito de " + effect.getType().getDescription());
+                }
+            } else {
+                this.setPreventedFromFighting(false);
+            }
+
+            if (effect.getDamage() > 0) {
+                this.setLifePoints(Math.max(0, this.getLifePoints() - effect.getDamage()));
+                ConsoleMessage.println(
+                        this.getName() + " perdeu " + effect.getDamage() + " pontos de vida devido ao efeito de " + effect.getType().getDescription(),
+                        Ansi.Color.RED
+                );
+            }
+        }
+    }
+
+    public void checkEffectDuration() {
+        if (this.hasActiveEffect()) {
+            this.getActiveEffect().setDuration(this.getActiveEffect().getDuration() - 1);
+
+            if (this.getActiveEffect().getDuration() <= 0) {
+                this.setActiveEffect(null);
+                this.setPreventedFromFighting(false);
+            } else {
+                ConsoleMessage.println("Duração restante: " + this.getActiveEffect().getDuration() + " turnos");
+            }
+        }
+    }
+
+    protected boolean hasActiveEffect() {
+        return this.getActiveEffect() != null;
+    }
 }
+

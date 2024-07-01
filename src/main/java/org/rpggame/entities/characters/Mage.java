@@ -73,6 +73,8 @@ public class Mage extends Character {
         this.setDefense(this.getMaxDefense());
         this.setMana(this.getMaxMana());
         this.setMagicPower(this.getMaxMagicPower());
+        this.setActiveEffect(null);
+        this.setPreventedFromFighting(false);
     }
 
     @Override

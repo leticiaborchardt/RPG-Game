@@ -38,10 +38,10 @@ public final class EnemyGenerator {
         int level = Math.max(1, character.getLevel() + levelVariation);
         int rewardXP = level * 50;
         String name = type.getDescription() + " Lv" + level;
-        ArrayList<Skill> skills = SkillManager.generateRandomSkills(character.getSkills().size());
-        ArrayList<Item> items = character.getItems().isEmpty() ? new ArrayList<>() : ItemsManager.generateRandomItems(character.getSkills().size());
+        ArrayList<Skill> skills = SkillManager.generateRandomSkills(Math.max(1, character.getSkills().size() - 1));
+        ArrayList<Item> items = character.getItems().isEmpty() ? new ArrayList<>() : ItemsManager.generateRandomItems(Math.max(1, character.getItems().size() - 1));
 
-        return new Enemy(name, lifePoints, attack, defense, experience, level, skills, items, type, rewardXP);
+        return new Enemy(name, 10, attack, defense, experience, level, skills, items, type, rewardXP);
     }
 
     /**
@@ -63,9 +63,9 @@ public final class EnemyGenerator {
         int rewardXP = level * 50;
         String name = EnemyType.BOSS.getDescription() + " Lv" + level;
         ArrayList<Skill> skills = SkillManager.generateRandomSkills(character.getSkills().size());
-        ArrayList<Item> items = character.getItems().isEmpty() ? new ArrayList<>() : ItemsManager.generateRandomItems(character.getSkills().size());
+        ArrayList<Item> items = character.getItems().isEmpty() ? new ArrayList<>() : ItemsManager.generateRandomItems(character.getItems().size());
         Reward reward = RewardGenerator.generateReward(character);
 
-        return new Boss(name, lifePoints, attack, defense, experience, level, skills, items, EnemyType.BOSS, rewardXP, reward);
+        return new Boss(name, 10, attack, defense, experience, level, skills, items, EnemyType.BOSS, rewardXP, reward);
     }
 }

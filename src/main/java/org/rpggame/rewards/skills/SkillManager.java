@@ -42,14 +42,19 @@ public final class SkillManager {
      * @return An ArrayList of Skill objects.
      */
     public static ArrayList<Skill> generateRandomSkills(int numberOfSkills) {
-        ArrayList<Skill> availableSkills = SkillManager.defaultSkills;
+        ArrayList<Skill> availableSkills = new ArrayList<>(SkillManager.defaultSkills);
 
         ArrayList<Skill> skills = new ArrayList<>();
         Random random = new Random();
 
         for (int i = 0; i < numberOfSkills; i++) {
+            if (availableSkills.isEmpty()) {
+                break;
+            }
+
             int index = random.nextInt(availableSkills.size());
             skills.add(availableSkills.get(index));
+            availableSkills.remove(index);
         }
 
         return skills;

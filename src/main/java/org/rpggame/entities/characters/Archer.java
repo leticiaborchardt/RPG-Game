@@ -56,6 +56,8 @@ public class Archer extends Character {
         this.setDefense(this.getMaxDefense());
         this.setAgility(this.getMaxAgility());
         this.setPrecision(this.getMaxPrecision());
+        this.setActiveEffect(null);
+        this.setPreventedFromFighting(false);
     }
 
     @Override
