@@ -60,14 +60,9 @@ public final class Battle {
         }
     }
 
-    private void showEndOfTurnMessage() {
-        ConsoleMessage.println("\nFIM DE TURNO!\n", Ansi.Color.MAGENTA);
-        if (character instanceof Mage) ((Mage) character).regenerateMana(5);
-
-        character.printInformation();
-        enemy.printInformation();
-    }
-
+    /**
+     * List on the console the participants of the battle.
+     */
     private void listCharacters() {
         ConsoleMessage.println("--------------------------------------------------------------------------------");
         ConsoleMessage.print("Batalha iniciada entre ");
@@ -114,33 +109,21 @@ public final class Battle {
                     attacker.deffend();
                     return;
                 case 4:
-                    Skill choosenSkill;
-                    Skill opponentSkill;
-
-                    if (attacker instanceof Enemy) {
-                        choosenSkill = attacker.getRandomSkill();
-                        opponentSkill = opponent.getRandomSkill();
-                    } else {
-                        choosenSkill = chooseSkill(attacker);
-                        opponentSkill = chooseSkill(opponent);
-                    }
+                    Skill choosenSkill = attacker instanceof Enemy ? attacker.getRandomSkill() : chooseSkill(attacker);
+                    Skill opponentSkill = attacker instanceof Enemy ? opponent.getRandomSkill() : chooseSkill(opponent);
 
                     attacker.skillAttack(opponent, opponentSkill, choosenSkill);
                     return;
                 case 5:
                     if (attacker.getItems().isEmpty()) {
-                        if (!(attacker instanceof Enemy))
+                        if (!(attacker instanceof Enemy)) {
                             ConsoleMessage.println("Você não possui nenhum item!", Ansi.Color.RED);
+                        }
+
                         break;
                     }
 
-                    Item item;
-
-                    if (attacker instanceof Enemy) {
-                        item = ItemsManager.getRandomItemFromCharacter(attacker);
-                    } else {
-                        item = chooseItem();
-                    }
+                    Item item = attacker instanceof Enemy ? ItemsManager.getRandomItemFromCharacter(attacker) : chooseItem();
 
                     attacker.itemAttack(opponent, item);
                     return;
@@ -156,6 +139,17 @@ public final class Battle {
                     break;
             }
         }
+    }
+
+    /**
+     * Prints an end turn message on the console.
+     */
+    private void showEndOfTurnMessage() {
+        ConsoleMessage.println("\nFIM DE TURNO!\n", Ansi.Color.MAGENTA);
+        if (character instanceof Mage) ((Mage) character).regenerateMana(5);
+
+        character.printInformation();
+        enemy.printInformation();
     }
 
     /**
