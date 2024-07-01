@@ -5,7 +5,8 @@ import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 import lombok.*;
 import org.fusesource.jansi.Ansi;
 import org.rpggame.entities.enemies.Enemy;
-import org.rpggame.skills.Skill;
+import org.rpggame.rewards.items.Item;
+import org.rpggame.rewards.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.SkillDamageCalculator;
 
@@ -28,6 +29,7 @@ public abstract class Character {
     protected int level;
     protected boolean isReadyToFightBoss;
     protected ArrayList<Skill> skills = new ArrayList<>();
+    protected ArrayList<Item> items = new ArrayList<>();
 
     public Character(String name, int maxHealth, int maxAttack, int maxDefense) {
         this.name = name;
@@ -133,9 +135,9 @@ public abstract class Character {
         AsciiTable asciiTable = new AsciiTable();
 
         asciiTable.addRule();
-        asciiTable.addRow("Nome", "Vida", "Ataque", "Defesa", "Level");
+        asciiTable.addRow("Nome", "Vida", "Ataque", "Defesa");
         asciiTable.addRule();
-        asciiTable.addRow(this.getName(), this.getLifePoints(), this.getAttack(), this.getDefense(), this.getLevel());
+        asciiTable.addRow(this.getName(), this.getLifePoints(), this.getAttack(), this.getDefense());
         asciiTable.addRule();
 
         asciiTable.setTextAlignment(TextAlignment.CENTER);

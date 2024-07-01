@@ -5,7 +5,7 @@ import org.rpggame.entities.characters.Archer;
 import org.rpggame.entities.characters.Character;
 import org.rpggame.entities.characters.Mage;
 import org.rpggame.entities.characters.Warrior;
-import org.rpggame.skills.Skill;
+import org.rpggame.rewards.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.InputValidator;
 

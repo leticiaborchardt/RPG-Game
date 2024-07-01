@@ -1,7 +1,7 @@
 package org.rpggame.entities.enemies;
 
 import lombok.*;
-import org.rpggame.skills.Skill;
+import org.rpggame.rewards.skills.Skill;
 
 import java.util.ArrayList;
 

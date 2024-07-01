@@ -1,7 +1,7 @@
 package org.rpggame.utils;
 
-import org.rpggame.skills.Skill;
-import org.rpggame.skills.SkillType;
+import org.rpggame.rewards.skills.Skill;
+import org.rpggame.rewards.skills.SkillType;
 
 /**
  * Contains methods to perform damage calculation based on the skill chosen and the one faced.

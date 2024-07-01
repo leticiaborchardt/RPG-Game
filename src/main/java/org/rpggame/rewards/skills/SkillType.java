@@ -1,4 +1,4 @@
-package org.rpggame.skills;
+package org.rpggame.rewards.skills;
 
 import lombok.Getter;
 

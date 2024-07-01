@@ -8,9 +8,11 @@ import org.rpggame.entities.characters.Mage;
 import org.rpggame.entities.characters.Warrior;
 import org.rpggame.entities.enemies.Boss;
 import org.rpggame.entities.enemies.Enemy;
-import org.rpggame.skills.Skill;
+import org.rpggame.rewards.Reward;
+import org.rpggame.rewards.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.InputValidator;
+import org.rpggame.utils.RewardGenerator;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -215,6 +217,9 @@ public final class Battle {
         }
 
         if (defeated instanceof Boss) {
+            Reward reward = RewardGenerator.generateReward(winner);
+
+            System.out.println("RECOMPENSA GERADA: " + reward.getClass().toString());
             // TODO: lógica para ganhar os itens especiais do chefão
         }
 

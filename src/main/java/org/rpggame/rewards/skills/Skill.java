@@ -1,12 +1,13 @@
-package org.rpggame.skills;
+package org.rpggame.rewards.skills;
 
 import lombok.*;
+import org.rpggame.rewards.Reward;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Skill {
+public class Skill implements Reward {
     private String name;
     private SkillType type;
     private int baseDamage;
