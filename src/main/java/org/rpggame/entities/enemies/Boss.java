@@ -1,6 +1,8 @@
 package org.rpggame.entities.enemies;
 
 import lombok.*;
+import org.rpggame.rewards.Reward;
+import org.rpggame.rewards.items.Item;
 import org.rpggame.rewards.skills.Skill;
 
 import java.util.ArrayList;
@@ -9,11 +11,10 @@ import java.util.ArrayList;
 @Setter
 @NoArgsConstructor
 public class Boss extends Enemy {
-    // TODO: implementar itens de recompensa
-    private String itemReward;
+    private Reward reward;
 
-    public Boss(String name, int lifePoints, int attack, int defense, int experience, int level, ArrayList<Skill> skills, EnemyType type, int rewardXP, String itemReward) {
-        super(name, lifePoints, attack, defense, experience, level, skills, type, rewardXP);
-        this.itemReward = itemReward;
+    public Boss(String name, int lifePoints, int attack, int defense, int experience, int level, ArrayList<Skill> skills, ArrayList<Item> items, EnemyType type, int rewardXP, Reward reward) {
+        super(name, lifePoints, attack, defense, experience, level, skills, items, type, rewardXP);
+        this.reward = reward;
     }
 }

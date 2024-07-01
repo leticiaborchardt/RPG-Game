@@ -8,11 +8,11 @@ import org.rpggame.entities.characters.Mage;
 import org.rpggame.entities.characters.Warrior;
 import org.rpggame.entities.enemies.Boss;
 import org.rpggame.entities.enemies.Enemy;
-import org.rpggame.rewards.Reward;
+import org.rpggame.rewards.items.Item;
+import org.rpggame.rewards.items.ItemsManager;
 import org.rpggame.rewards.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.InputValidator;
-import org.rpggame.utils.RewardGenerator;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -45,17 +45,29 @@ public final class Battle {
 
         while (!this.isBattleOver()) {
             newTurn(character, enemy);
+            showEndOfTurnMessage();
 
             if (this.checkIfBattleIsOver()) {
                 break;
             }
 
             newTurn(enemy, character);
+            showEndOfTurnMessage();
 
             if (this.checkIfBattleIsOver()) {
                 break;
             }
         }
+
+
+    }
+
+    private void showEndOfTurnMessage() {
+        ConsoleMessage.println("\nFIM DE TURNO!\n", Ansi.Color.MAGENTA);
+        if (character instanceof Mage) ((Mage) character).regenerateMana(5);
+
+        character.printInformation();
+        enemy.printInformation();
     }
 
     private void listCharacters() {
@@ -82,69 +94,95 @@ public final class Battle {
 
         ConsoleMessage.println("\nNOVO TURNO: Turno de " + attacker.getName() + "\n", Ansi.Color.MAGENTA);
 
+        while (true) {
+            switch (getTurnAction(attacker)) {
+                case 1:
+                    attacker.attack(opponent);
+                    return;
+                case 2:
+                    attacker.specialAttack(opponent);
+                    return;
+                case 3:
+                    attacker.deffend();
+                    return;
+                case 4:
+                    Skill choosenSkill;
+                    Skill opponentSkill;
+
+                    if (attacker instanceof Enemy) {
+                        choosenSkill = attacker.getRandomSkill();
+                        opponentSkill = opponent.getRandomSkill();
+                    } else {
+                        choosenSkill = chooseSkill(attacker);
+                        opponentSkill = chooseSkill(opponent);
+                    }
+
+                    attacker.skillAttack(opponent, opponentSkill, choosenSkill);
+                    return;
+                case 5:
+                    if (attacker.getItems().isEmpty()) {
+                        if (!(attacker instanceof Enemy))
+                            ConsoleMessage.println("Você não possui nenhum item!", Ansi.Color.RED);
+                        break;
+                    }
+
+                    Item item;
+
+                    if (attacker instanceof Enemy) {
+                        item = ItemsManager.getRandomItemFromCharacter(attacker);
+                    } else {
+                        item = chooseItem();
+                    }
+
+                    attacker.itemAttack(opponent, item);
+                    return;
+                case 6:
+                    if (attacker.tryEscape()) {
+                        this.setBattleOver(true);
+                        ConsoleMessage.println("\nA batalha terminou!", Ansi.Color.RED);
+                    }
+
+                    return;
+                default:
+                    ConsoleMessage.printInvalidOptionMessage();
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Returns the choosen action for the turn, based on the attacker type of character.
+     *
+     * @param attacker The character of the current turn.
+     * @return The number of the chosen option.
+     */
+    private int getTurnAction(Character attacker) {
         int action;
+
         if (attacker instanceof Enemy) {
             try {
                 ConsoleMessage.println(attacker.getName() + " está escolhendo sua ação...");
                 Thread.sleep(4000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                ConsoleMessage.println("Não foi possível completar a ação.");
             }
 
             Random random = new Random();
-            action = random.nextInt(3) + 1;
+
+            // Excludes the option to use an item if the enemy has none
+            action = random.nextInt(attacker.getItems().isEmpty() ? 4 : 5) + 1;
         } else {
             ConsoleMessage.println("Escolha uma ação:", Ansi.Color.BLUE);
-            action = InputValidator.getInteger(this.getBattleOptions(attacker));
+            action = InputValidator.getInteger(this.getBattleOptions());
         }
 
-        switch (action) {
-            case 1:
-                attacker.attack(opponent);
-                break;
-            case 2:
-                attacker.specialAttack(opponent);
-                break;
-            case 3:
-                Skill choosenSkill;
-                Skill opponentSkill;
-
-                if (attacker instanceof Enemy) {
-                    choosenSkill = chooseRandomSkill(attacker);
-                    opponentSkill = chooseRandomSkill(opponent);
-                } else {
-                    choosenSkill = chooseSkill(attacker);
-                    opponentSkill = chooseSkill(opponent);
-                }
-
-                attacker.skillAttack(opponent, opponentSkill, choosenSkill);
-                break;
-            case 4:
-                attacker.deffend();
-                break;
-            case 5:
-                if (attacker.tryEscape()) {
-                    this.setBattleOver(true);
-                    ConsoleMessage.println("\nA batalha terminou!" , Ansi.Color.RED);
-                } else {
-                    return;
-                }
-                break;
-            default:
-                ConsoleMessage.printInvalidOptionMessage();
-        }
-
-        ConsoleMessage.println("\nFIM DE TURNO!\n", Ansi.Color.MAGENTA);
-        if (attacker instanceof Mage) ((Mage) character).regenerateMana(5);
-
-        attacker.printInformation();
-        opponent.printInformation();
+        return action;
     }
 
     /**
-     * Allows the character to choose a skill to use in battle.
+     * Allows the character to choose a skill to use or attack in battle.
      *
-     * @param character The character choosing the skill.
+     * @param character The character himself or the enemy.
      * @return The selected skill from the character's available skills.
      */
     private Skill chooseSkill(Character character) {
@@ -157,7 +195,7 @@ public final class Battle {
         ArrayList<Skill> skills = character.getSkills();
 
         for (int i = 0; i < skills.size(); i++) {
-            ConsoleMessage.println("\n[" +(i + 1) + "] " + skills.get(i).toString(), Ansi.Color.CYAN);
+            ConsoleMessage.println("\n[" + (i + 1) + "] " + skills.get(i).toString(), Ansi.Color.CYAN);
         }
 
         int choice = InputValidator.getInteger("Escolha uma habilidade:") - 1;
@@ -171,19 +209,27 @@ public final class Battle {
     }
 
     /**
-     * Chooses a random skill from the character's available skills.
-     * Used when the enemy character is selecting a skill to use during attacks.
+     * Allows the character to choose an item to use in battle.
      *
-     * @param character The character from which to choose a skill randomly.
-     * @return A randomly selected skill from the character's skills.
+     * @return The selected item from the character's available items.
      */
-    private Skill chooseRandomSkill(Character character) {
-        ArrayList<Skill> skills = character.getSkills();
+    private Item chooseItem() {
+        ConsoleMessage.println(character.getName() + ", escolha um item para usar:", Ansi.Color.BLUE);
 
-        Random random = new Random();
-        int choice = random.nextInt(skills.size());
+        ArrayList<Item> items = character.getItems();
 
-        return skills.get(choice);
+        for (int i = 0; i < items.size(); i++) {
+            ConsoleMessage.println("\n[" + (i + 1) + "] " + items.get(i).toString(), Ansi.Color.CYAN);
+        }
+
+        int choice = InputValidator.getInteger("Escolha um item:") - 1;
+
+        if (choice >= 0 && choice < items.size()) {
+            return items.get(choice);
+        } else {
+            ConsoleMessage.printInvalidOptionMessage();
+            return chooseItem();
+        }
     }
 
     /**
@@ -213,39 +259,39 @@ public final class Battle {
         int totalXP = 0;
         if (defeated instanceof Enemy) {
             totalXP = ((Enemy) defeated).getRewardXP();
-            winner.gainExperience(totalXP);
         }
 
-        if (defeated instanceof Boss) {
-            Reward reward = RewardGenerator.generateReward(winner);
+        ConsoleMessage.println("\n------------------------------------------");
+        ConsoleMessage.println("FIM DA BATALHA!", Ansi.Color.RED);
+        ConsoleMessage.println("Vencedor: " + winner.getName(), Ansi.Color.BLUE);
+        if (totalXP != 0) ConsoleMessage.println("Total de XP ganho: " + totalXP);
+        ConsoleMessage.println("------------------------------------------");
 
-            System.out.println("RECOMPENSA GERADA: " + reward.getClass().toString());
-            // TODO: lógica para ganhar os itens especiais do chefão
+        winner.gainExperience(totalXP);
+
+        if (defeated instanceof Boss) {
+            winner.gainRewards((Boss) defeated);
         }
 
         this.setBattleOver(true);
-
-        ConsoleMessage.println("\nA batalha terminou!" , Ansi.Color.RED);
-        ConsoleMessage.println("Vencedor: " + winner.getName(), Ansi.Color.BLUE);
-        if (totalXP != 0) ConsoleMessage.println("Total de XP ganho: " + totalXP);
     }
 
     /**
      * Generates the battle options menu based on the type of attacker.
      *
-     * @param attacker The character initiating the battle turn.
      * @return A string representing the available battle options.
      */
-    private String getBattleOptions(Character attacker) {
+    private String getBattleOptions() {
         String options = "[1] Ataque padrão\n";
 
-        if (attacker instanceof Archer) options = options + "[2] Ataque especial (Arqueiro)\n";
-        if (attacker instanceof Mage) options = options + "[2] Ataque especial (Mago)\n";
-        if (attacker instanceof Warrior) options = options + "[2] Ataque especial (Guerreiro)\n";
+        if (character instanceof Archer) options = options + "[2] Ataque especial (Arqueiro)\n";
+        if (character instanceof Mage) options = options + "[2] Ataque especial (Mago)\n";
+        if (character instanceof Warrior) options = options + "[2] Ataque especial (Guerreiro)\n";
 
-        options = options + "[3] Usar habilidade\n" +
-                "[4] Defender-se\n" +
-                "[5] Tentar fugir";
+        options = options + "[3] Defender-se\n" +
+                "[4] Usar habilidade\n" +
+                "[5] Usar item\n" +
+                "[6] Tentar fugir";
 
         return options;
     }

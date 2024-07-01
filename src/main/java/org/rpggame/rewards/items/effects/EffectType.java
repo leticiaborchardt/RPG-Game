@@ -1,9 +1,9 @@
-package org.rpggame.rewards.items;
+package org.rpggame.rewards.items.effects;
 
 import lombok.Getter;
 
 @Getter
-public enum ItemEffect {
+public enum EffectType {
     POISONING("Envenenamento"),
     STUN("Atordoação"),
     BURN("Queimadura"),
@@ -11,7 +11,7 @@ public enum ItemEffect {
 
     private final String description;
 
-    ItemEffect(String description) {
+    EffectType(String description) {
         this.description = description;
     }
 }

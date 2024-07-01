@@ -43,6 +43,7 @@ public class Archer extends Character {
 
         this.setMaxPrecision(this.getMaxPrecision() + 5);
         this.setMaxAgility(this.getMaxAgility() + 5);
+        this.regenerate();
 
         this.setReadyToFightBoss(true);
         this.showLevelUpMessage();

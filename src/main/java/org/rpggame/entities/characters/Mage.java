@@ -60,6 +60,7 @@ public class Mage extends Character {
 
         this.setMaxMagicPower(this.getMaxMagicPower() + 5);
         this.setMaxMana(this.getMaxMana() + 10);
+        this.regenerate();
 
         this.setReadyToFightBoss(true);
         this.showLevelUpMessage();

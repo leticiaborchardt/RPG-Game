@@ -2,6 +2,7 @@ package org.rpggame.rewards.items;
 
 import lombok.*;
 import org.rpggame.rewards.Reward;
+import org.rpggame.rewards.items.effects.EffectType;
 
 @Getter
 @Setter
@@ -10,12 +11,12 @@ import org.rpggame.rewards.Reward;
 public class Item implements Reward {
     private String name;
     private ItemRarity rarity;
-    private ItemEffect effect;
+    private EffectType effectType;
 
     @Override
     public String toString() {
         return this.getName() +
                 "\nRaridade: " + this.getRarity().getDescription() +
-                " | Efeito: " + this.getEffect().getDescription();
+                " | Efeito: " + this.getEffectType().getDescription();
     }
 }

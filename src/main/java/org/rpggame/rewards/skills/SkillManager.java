@@ -14,6 +14,12 @@ public final class SkillManager {
             new Skill("Garras do Ártico", SkillType.ICE, 20, "Garras geladas que congelam e destroem os inimigos.")
     ));
 
+    /**
+     * Returns a random skill from default list excluding skills the character already has
+     *
+     * @param skillsExcluded The character's skill list.
+     * @return A randomly selected skill from the default list of skills.
+     */
     public static Skill getRandomSkill(ArrayList<Skill> skillsExcluded) {
         List<Skill> availableItems = new ArrayList<>(defaultSkills);
         availableItems.removeAll(skillsExcluded);
@@ -26,5 +32,26 @@ public final class SkillManager {
         int index = random.nextInt(availableItems.size());
 
         return availableItems.get(index);
+    }
+
+    /**
+     * Generates a list of skills from a predefined list,
+     * based on the number of items the character has.
+     *
+     * @param numberOfSkills Number of skills to generate.
+     * @return An ArrayList of Skill objects.
+     */
+    public static ArrayList<Skill> generateRandomSkills(int numberOfSkills) {
+        ArrayList<Skill> availableSkills = SkillManager.defaultSkills;
+
+        ArrayList<Skill> skills = new ArrayList<>();
+        Random random = new Random();
+
+        for (int i = 0; i < numberOfSkills; i++) {
+            int index = random.nextInt(availableSkills.size());
+            skills.add(availableSkills.get(index));
+        }
+
+        return skills;
     }
 }

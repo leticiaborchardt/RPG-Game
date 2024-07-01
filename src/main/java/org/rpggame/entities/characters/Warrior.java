@@ -43,6 +43,7 @@ public class Warrior extends Character {
 
         this.setStrength(this.getMaxStrength() + 5);
         this.setEndurance(this.getMaxEndurance() + 5);
+        this.regenerate();
 
         this.setReadyToFightBoss(true);
         this.showLevelUpMessage();

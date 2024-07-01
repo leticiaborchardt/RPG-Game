@@ -4,8 +4,12 @@ import de.vandermeer.asciitable.AsciiTable;
 import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment;
 import lombok.*;
 import org.fusesource.jansi.Ansi;
+import org.rpggame.entities.enemies.Boss;
 import org.rpggame.entities.enemies.Enemy;
+import org.rpggame.rewards.Reward;
 import org.rpggame.rewards.items.Item;
+import org.rpggame.rewards.items.effects.Effect;
+import org.rpggame.rewards.items.effects.EffectType;
 import org.rpggame.rewards.skills.Skill;
 import org.rpggame.utils.ConsoleMessage;
 import org.rpggame.utils.SkillDamageCalculator;
@@ -30,6 +34,7 @@ public abstract class Character {
     protected boolean isReadyToFightBoss;
     protected ArrayList<Skill> skills = new ArrayList<>();
     protected ArrayList<Item> items = new ArrayList<>();
+    protected Effect activeEffect;
 
     public Character(String name, int maxHealth, int maxAttack, int maxDefense) {
         this.name = name;
@@ -44,7 +49,7 @@ public abstract class Character {
         this.isReadyToFightBoss = false;
     }
 
-    public Character(String name, int maxHealth, int maxAttack, int maxDefense, int experience, int level, ArrayList<Skill> skills) {
+    public Character(String name, int maxHealth, int maxAttack, int maxDefense, int experience, int level, ArrayList<Skill> skills, ArrayList<Item> items) {
         this.name = name;
         this.lifePoints = maxHealth;
         this.maxHealth = maxHealth;
@@ -55,10 +60,30 @@ public abstract class Character {
         this.experience = experience;
         this.level = level;
         this.skills = skills;
+        this.items = items;
     }
 
     public void addSkill(Skill skill) {
         this.getSkills().add(skill);
+    }
+
+    public void addItem(Item item) {
+        this.getItems().add(item);
+    }
+
+    /**
+     * Returns a random skill from the character's available skills.
+     * Most used when an enemy is selecting a skill to use/attack during the battle.
+     *
+     * @return A randomly selected skill from the character's skills.
+     */
+    public Skill getRandomSkill() {
+        ArrayList<Skill> skills = this.getSkills();
+
+        Random random = new Random();
+        int choice = random.nextInt(skills.size());
+
+        return skills.get(choice);
     }
 
     public void gainExperience(int xp) {
@@ -125,6 +150,13 @@ public abstract class Character {
             }
         }
 
+        if (!this.getItems().isEmpty()) {
+            ConsoleMessage.println("Itens", this instanceof Enemy ? Ansi.Color.RED : Ansi.Color.GREEN);
+            for (Item item : this.getItems()) {
+                ConsoleMessage.println(item.getName() + " | Raridade: " + item.getRarity().getDescription() + " | Efeito: " + item.getEffectType().getDescription());
+            }
+        }
+
         if (!(this instanceof Enemy)) {
             ConsoleMessage.println("Total XP: " + this.getExperience(), Ansi.Color.GREEN);
             ConsoleMessage.println("XP necessária para o próximo nível: " + this.getExperienceRequiredForNextLevel() + "\n", Ansi.Color.WHITE);
@@ -156,6 +188,7 @@ public abstract class Character {
 
     protected void levelUp() {
         this.increasePointsLevelUp();
+        this.regenerate();
         this.showLevelUpMessage();
     }
 
@@ -169,7 +202,7 @@ public abstract class Character {
     }
 
     protected void showLevelUpMessage() {
-        ConsoleMessage.println("Level Up! " + this.getName() + " subiu para o nível " + this.getLevel(), Ansi.Color.GREEN);
+        ConsoleMessage.println("\nLevel Up! " + this.getName() + " subiu para o nível " + this.getLevel(), Ansi.Color.GREEN);
         printInformation();
         ConsoleMessage.println(this.getName() + " está pronto para enfrentar o chefão!", Ansi.Color.MAGENTA);
     }
@@ -205,5 +238,33 @@ public abstract class Character {
         this.setLifePoints(this.getMaxHealth());
         this.setAttack(this.getMaxAttack());
         this.setDefense(this.getMaxDefense());
+    }
+
+    public void gainRewards(Boss boss) {
+        Reward reward = boss.getReward();
+
+        if (reward != null) {
+            if (reward instanceof Item) {
+                this.addItem((Item) reward);
+                ConsoleMessage.println("Parabéns! Você ganhou um novo item:", Ansi.Color.BLUE);
+            } else {
+                this.addSkill((Skill) reward);
+                ConsoleMessage.println("Parabéns! Você ganhou uma nova habilidade:", Ansi.Color.BLUE);
+            }
+
+            ConsoleMessage.println(reward.toString(), Ansi.Color.MAGENTA);
+        }
+    }
+
+    public void itemAttack(Character opponent, Item item) {
+        ConsoleMessage.println(this.getName() + " usou o item \"" + item.getName() + "\"!", Ansi.Color.YELLOW);
+
+        Effect effect = new Effect(item.getEffectType());
+        opponent.setActiveEffect(effect);
+
+        ConsoleMessage.println(
+                opponent.getName() + " está sobre o efeito de \"" + effect.getType().getDescription() + "\" durante " + effect.getDuration() + " rodadas!",
+                Ansi.Color.RED
+        );
     }
 }

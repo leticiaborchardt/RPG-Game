@@ -4,6 +4,9 @@ import org.rpggame.entities.characters.Character;
 import org.rpggame.entities.enemies.Boss;
 import org.rpggame.entities.enemies.Enemy;
 import org.rpggame.entities.enemies.EnemyType;
+import org.rpggame.rewards.Reward;
+import org.rpggame.rewards.items.Item;
+import org.rpggame.rewards.items.ItemsManager;
 import org.rpggame.rewards.skills.Skill;
 import org.rpggame.rewards.skills.SkillManager;
 
@@ -35,9 +38,10 @@ public final class EnemyGenerator {
         int level = Math.max(1, character.getLevel() + levelVariation);
         int rewardXP = level * 50;
         String name = type.getDescription() + " Lv" + level;
-        ArrayList<Skill> skills = generateRandomSkills(character.getSkills().size());
+        ArrayList<Skill> skills = SkillManager.generateRandomSkills(character.getSkills().size());
+        ArrayList<Item> items = character.getItems().isEmpty() ? new ArrayList<>() : ItemsManager.generateRandomItems(character.getSkills().size());
 
-        return new Enemy(name, lifePoints, attack, defense, experience, level, skills, type, rewardXP);
+        return new Enemy(name, lifePoints, attack, defense, experience, level, skills, items, type, rewardXP);
     }
 
     /**
@@ -54,32 +58,14 @@ public final class EnemyGenerator {
         int lifePoints = (int) (character.getLifePoints() * (1.0 + 0.2 * rand.nextDouble()));
         int attack = (int) (character.getAttack() * (1.0 + 0.2 * rand.nextDouble()));
         int defense = (int) (character.getDefense() * (1.0 + 0.2 * rand.nextDouble()));
-        int experience = character.getLevel() * 150;
-        int level = character.getLevel() + 1;
+        int experience = character.getLevel() * 100;
+        int level = character.getLevel();
         int rewardXP = level * 50;
         String name = EnemyType.BOSS.getDescription() + " Lv" + level;
-        ArrayList<Skill> skills = generateRandomSkills(character.getSkills().size());
+        ArrayList<Skill> skills = SkillManager.generateRandomSkills(character.getSkills().size());
+        ArrayList<Item> items = character.getItems().isEmpty() ? new ArrayList<>() : ItemsManager.generateRandomItems(character.getSkills().size());
+        Reward reward = RewardGenerator.generateReward(character);
 
-        return new Boss(name, lifePoints, attack, defense, experience, level, skills, EnemyType.BOSS, rewardXP, "");
-    }
-
-    /**
-     * Generates a list of skills by selecting three skills randomly from a predefined list of skills.
-     *
-     * @param numberOfSkills Number of skills to generate.
-     * @return An ArrayList of Skill objects.
-     */
-    private static ArrayList<Skill> generateRandomSkills(int numberOfSkills) {
-        ArrayList<Skill> availableSkills = SkillManager.defaultSkills;
-
-        ArrayList<Skill> skills = new ArrayList<>();
-        Random random = new Random();
-
-        for (int i = 0; i < numberOfSkills; i++) {
-            int index = random.nextInt(availableSkills.size());
-            skills.add(availableSkills.get(index));
-        }
-
-        return skills;
+        return new Boss(name, lifePoints, attack, defense, experience, level, skills, items, EnemyType.BOSS, rewardXP, reward);
     }
 }
